@@ -147,6 +147,12 @@
       text-align: center;
     }
 
+    #thankYouScreen {
+      text-align: center;
+      font-size: 18px;
+      padding: 30px;
+    }
+
     @media screen and (max-width: 600px) {
       .topbar {
         flex-direction: column;
@@ -210,18 +216,40 @@
   <button onclick="submitExam()">Submit Exam</button>
 </div>
 
+<div class="container" id="thankYouScreen" style="display:none;">
+  <h2>✅ Exam Submitted</h2>
+  <p>Thank you for submitting your exam, <span id="submittedStudentName"></span>.</p>
+  <p>Subject: <span id="submittedSubject"></span></p>
+  <p>Your responses have been recorded.</p>
+</div>
+
 <script>
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbwARikUbx2oTFCTYmx_l2Kb6XmDwWibQhbuXz1xOQ6Bj0-uQMR_3ghyzDEOeH2Kxe0_/exec'; // Replace with your actual script URL
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbwARikUbx2oTFCTYmx_l2Kb6XmDwWibQhbuXz1xOQ6Bj0-uQMR_3ghyzDEOeH2Kxe0_/exec';
 
   let student = {};
   let timerInterval;
-  let timeLeft = parseInt(localStorage.getItem('timeLeft')) || 3600;
+  let endTime;
 
-  function sanitize(input) {
+  window.addEventListener('beforeunload', (e) => {
+    if (document.getElementById('examContainer').style.display === 'block') {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  const sanitize = (input) => {
     const div = document.createElement('div');
     div.textContent = input;
     return div.innerHTML.trim();
-  }
+  };
+
+  const questionBank = {
+    "HTML": ["What does HTML stand for?", "Which tag is used for inserting images?", "What tag is used to create links?"],
+    "CSS": ["What does CSS stand for?", "How do you change text color in CSS?", "What CSS property sets background color?"],
+    "Basic Computer": ["What is the full form of CPU?", "Name one output device.", "What is the function of RAM?"]
+  };
+
+  const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
 
   function login() {
     const email = sanitize(document.getElementById("email").value.trim());
@@ -261,25 +289,22 @@
 
         document.getElementById("profileImage").src = photoURL || "default-profile.png";
 
-        restoreSubject();
+        if (!localStorage.getItem('examEndTime')) {
+          const end = Date.now() + 3600000;
+          localStorage.setItem('examEndTime', end);
+        }
         startTimer();
+        restoreSubject();
       } else {
         document.getElementById("loginError").innerText = "❌ Invalid Email or Password";
       }
     })
     .catch(err => {
-      console.error("Login error:", err);
       loginButton.disabled = false;
       loginButton.innerText = "Login";
       document.getElementById("loginError").innerText = "⚠️ Network error. Try again.";
     });
   }
-
-  const questionBank = {
-    "HTML": ["What does HTML stand for?", "Which tag is used for inserting images?", "What tag is used to create links?"],
-    "CSS": ["What does CSS stand for?", "How do you change text color in CSS?", "What CSS property sets background color?"],
-    "Basic Computer": ["What is the full form of CPU?", "Name one output device.", "What is the function of RAM?"]
-  };
 
   function loadQuestions() {
     const subject = document.getElementById("subject").value;
@@ -290,29 +315,53 @@
 
     localStorage.setItem("selectedSubject", subject);
 
-    const questions = questionBank[subject];
+    let questions = JSON.parse(localStorage.getItem(`shuffled_${subject}`));
+    if (!questions) {
+      questions = shuffle([...questionBank[subject]]);
+      localStorage.setItem(`shuffled_${subject}`, JSON.stringify(questions));
+    }
+
+    const savedAnswers = JSON.parse(localStorage.getItem(`answers_${subject}`)) || [];
+
     questions.forEach((q, i) => {
-      const savedAnswer = localStorage.getItem(`answer_q${i+1}`) || '';
+      const answer = sanitize(savedAnswers[i] || "");
       const div = document.createElement("div");
       div.className = "question";
-      div.innerHTML = `
-        <label>Q${i+1}: ${sanitize(q)}</label>
-        <input type="text" id="q${i+1}" value="${sanitize(savedAnswer)}" placeholder="Your answer...">`;
+      div.innerHTML = `<label>Q${i + 1}: ${sanitize(q)}</label>
+        <input type="text" id="q${i + 1}" value="${answer}" placeholder="Your answer...">`;
       questionsDiv.appendChild(div);
     });
   }
 
-  function startTimer() {
-    updateTimer();
-    timerInterval = setInterval(() => {
-      timeLeft--;
-      localStorage.setItem('timeLeft', timeLeft);
-      updateTimer();
+  function autoSaveAnswers() {
+    const subject = document.getElementById("subject").value;
+    if (!subject) return;
 
-      if (timeLeft === 300) alert("⚠️ Only 5 minutes left!");
-      if (timeLeft <= 0) {
+    const questions = JSON.parse(localStorage.getItem(`shuffled_${subject}`)) || [];
+    const answers = questions.map((q, i) => {
+      const input = document.getElementById(`q${i + 1}`);
+      return input ? input.value.trim() : "";
+    });
+
+    localStorage.setItem(`answers_${subject}`, JSON.stringify(answers));
+  }
+
+  function startTimer() {
+    endTime = parseInt(localStorage.getItem('examEndTime'));
+    updateTimer();
+
+    timerInterval = setInterval(() => {
+      const now = Date.now();
+      const remaining = endTime - now;
+
+      if (remaining <= 0) {
         clearInterval(timerInterval);
         submitExam(true);
+      } else {
+        if (Math.floor(remaining / 1000) === 300) {
+          alert("⚠️ Only 5 minutes left!");
+        }
+        updateTimer();
       }
     }, 1000);
 
@@ -320,21 +369,10 @@
   }
 
   function updateTimer() {
-    const min = Math.floor(timeLeft / 60);
-    const sec = timeLeft % 60;
+    const remaining = endTime - Date.now();
+    const min = Math.floor(remaining / 60000);
+    const sec = Math.floor((remaining % 60000) / 1000);
     document.getElementById("timer").innerText = `Time Left: ${min}:${sec < 10 ? '0' : ''}${sec}`;
-  }
-
-  function autoSaveAnswers() {
-    const subject = document.getElementById("subject").value;
-    if (!subject) return;
-    const questions = questionBank[subject];
-    questions.forEach((q, i) => {
-      const input = document.getElementById(`q${i+1}`);
-      if (input) {
-        localStorage.setItem(`answer_q${i+1}`, input.value.trim());
-      }
-    });
   }
 
   function submitExam(auto = false) {
@@ -343,8 +381,12 @@
 
     if (!auto && !confirm("Are you sure you want to submit your exam?")) return;
 
-    const answers = questionBank[subject].map((q, i) => {
-      return sanitize(document.getElementById(`q${i+1}`)?.value || "Not Answered");
+    const answers = [];
+    const questions = JSON.parse(localStorage.getItem(`shuffled_${subject}`)) || [];
+
+    questions.forEach((q, i) => {
+      const input = document.getElementById(`q${i + 1}`);
+      answers.push(sanitize(input?.value || "Not Answered"));
     });
 
     const submitButton = document.querySelector("button[onclick='submitExam()']");
@@ -368,15 +410,20 @@
 
       if (data.success) {
         clearInterval(timerInterval);
-        localStorage.clear();
-        alert(auto ? "⌛ Time's up! Exam auto-submitted." : "✅ Exam submitted successfully!");
-        location.reload();
+        localStorage.removeItem('examEndTime');
+        localStorage.removeItem('selectedSubject');
+        localStorage.removeItem(`answers_${subject}`);
+        localStorage.removeItem(`shuffled_${subject}`);
+        document.getElementById("examContainer").style.display = "none";
+        document.getElementById("topbar").style.display = "none";
+        document.getElementById("thankYouScreen").style.display = "block";
+        document.getElementById("submittedStudentName").innerText = student.name;
+        document.getElementById("submittedSubject").innerText = subject;
       } else {
         alert("❌ Submission failed. Try again.");
       }
     })
     .catch(err => {
-      console.error("Submit error:", err);
       submitButton.disabled = false;
       submitButton.innerText = "Submit Exam";
       alert("⚠️ Network error. Try again.");
@@ -394,14 +441,22 @@
   function logout() {
     if (confirm("Do you really want to logout?")) {
       clearInterval(timerInterval);
-      localStorage.clear();
+      localStorage.removeItem('student');
+      localStorage.removeItem('examEndTime');
+      const subject = localStorage.getItem("selectedSubject");
+      if (subject) {
+        localStorage.removeItem(`answers_${subject}`);
+        localStorage.removeItem(`shuffled_${subject}`);
+        localStorage.removeItem('selectedSubject');
+      }
       location.reload();
     }
   }
 
   window.onload = () => {
     const savedStudent = localStorage.getItem('student');
-    if (savedStudent) {
+    const savedEnd = localStorage.getItem('examEndTime');
+    if (savedStudent && savedEnd) {
       if (confirm("Resume your previous session?")) {
         student = JSON.parse(savedStudent);
         document.getElementById("loginContainer").style.display = "none";
@@ -417,7 +472,5 @@
     }
   };
 </script>
-
 </body>
 </html>
-
