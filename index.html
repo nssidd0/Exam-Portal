@@ -2,39 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exam Portal</title>
   <style>
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f4f4;
+    :root {
+      --primary: #4a90e2;
+      --accent: #00b894;
+      --danger: #e74c3c;
+      --bg: #f1f2f6;
+      --white: #fff;
+      --text-dark: #2d3436;
     }
 
-    .logo img {
-      max-height: 40px;
-      width: auto;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
     }
 
     .topbar {
-      position: fixed;
+      position: sticky;
       top: 0;
-      width: 100%;
-      background: #333;
-      color: #fff;
-      padding: 10px 15px;
+      background: var(--white);
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      z-index: 999;
+      align-items: center;
+      padding: 12px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
     }
 
-    .logo {
+    .topbar .logo {
       font-weight: bold;
-      font-size: 18px;
-      flex: 1;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .topbar .logo img {
+      height: 32px;
+      margin-right: 10px;
     }
 
     .profile {
@@ -44,142 +57,161 @@
     }
 
     .profile img {
-      border-radius: 50%;
       width: 40px;
       height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+    }
+
+    .logout-button {
+      background: var(--danger);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
     }
 
     .container {
-      margin-top: 80px;
-      padding: 20px;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-      background: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 700px;
+      margin: 40px auto;
+      background: var(--white);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
     }
 
-    label, select, input[type="text"], input[type="email"], input[type="password"] {
-      display: block;
-      margin: 12px 0;
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form input,
+    select,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       font-size: 16px;
+      outline: none;
+    }
+
+    form input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #01996f;
     }
 
     .question {
       margin: 20px 0;
     }
 
-    button {
-      padding: 14px 18px;
-      background: #28a745;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-      width: 100%;
-      margin-top: 10px;
-      border-radius: 5px;
-    }
-
-    .logout-button {
-      background: #dc3545;
-      margin-top: 0;
-      width: auto;
-      padding: 10px 14px;
+    .question label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
     }
 
     .timer {
-      font-weight: bold;
-      color: red;
       text-align: center;
-      margin-top: 20px;
       font-size: 18px;
+      font-weight: bold;
+      color: var(--danger);
+      margin: 20px 0;
     }
 
     #loginError {
-      color: red;
-      font-weight: bold;
+      color: var(--danger);
       margin-top: 10px;
+      text-align: center;
     }
 
     @media screen and (max-width: 600px) {
       .topbar {
         flex-direction: column;
         align-items: flex-start;
+        gap: 10px;
       }
 
       .profile {
-        justify-content: space-between;
         width: 100%;
-        margin-top: 10px;
+        justify-content: space-between;
       }
 
       .container {
-        margin-top: 90px;
-        padding: 15px;
-      }
-
-      button {
-        font-size: 16px;
-        padding: 12px;
-      }
-
-      .timer {
-        font-size: 16px;
+        margin: 20px 15px;
+        padding: 20px;
       }
     }
   </style>
 </head>
 <body>
 
-  <div class="topbar" id="topbar" style="display:none">
-    <div class="logo">
-      <img src="nssiddlogo.png" style="height: 30px; vertical-align: middle; margin-right: 8px;" alt="logo">
-      NS SIDD TUTORIAL
-    </div>
+<div class="topbar" id="topbar" style="display:none">
+  <div class="logo">
+    <img src="nssiddlogo.png" alt="logo">
+    NS SIDD TUTORIAL
+  </div>
+  <div class="profile">
+    <span id="studentName"></span>
+    <img id="profileImage" src="" alt="Profile" onerror="this.src='default-profile.png';">
+    <button class="logout-button" onclick="logout()">Logout</button>
+  </div>
+</div>
 
-    <div class="profile">
-      <span id="studentName"></span>
-      <img id="profileImage" src="" alt="Profile" onerror="this.src='default-profile.png';">
-      <button class="logout-button" onclick="logout()">Logout</button>
-    </div>
+<div class="container" id="loginContainer">
+  <div style="text-align:center;">
+    <img src="nssiddlogo.png" style="height: 60px;" alt="logo">
+  </div>
+  <h2>🔐 Student Login</h2>
+  <form onsubmit="event.preventDefault(); login();">
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <button type="submit">Login</button>
+    <div id="loginError"></div>
+  </form>
+</div>
+
+<div class="container" id="examContainer" style="display:none;">
+  <h2>📝 Exam</h2>
+  <div>
+    <label for="subject">Select Subject</label>
+    <select id="subject" onchange="loadQuestions()">
+      <option value="">--Select--</option>
+      <option value="HTML">HTML</option>
+      <option value="CSS">CSS</option>
+      <option value="Basic Computer">Basic Computer</option>
+    </select>
   </div>
 
-  <div class="container" id="loginContainer">
-    <div style="text-align: center; margin-bottom: 20px;">
-      <img src="nssiddlogo.png" style="height: 60px;" alt="logo">
-    </div>
-
-    <h2>🔐 Student Login</h2>
-    <form onsubmit="event.preventDefault(); login();">
-      <input type="email" id="email" placeholder="Enter Email" required>
-      <input type="password" id="password" placeholder="Enter Password" required>
-      <button type="submit">Login</button>
-      <div id="loginError"></div>
-    </form>
-  </div>
-
-  <div class="container" id="examContainer" style="display:none;">
-    <h2>📝 Exam</h2>
-    <div>
-      <label for="subject">Select Subject</label>
-      <select id="subject" onchange="loadQuestions()">
-        <option value="">--Select--</option>
-        <option value="HTML">HTML</option>
-        <option value="CSS">CSS</option>
-        <option value="Basic Computer">Basic Computer</option>
-      </select>
-    </div>
-
-    <div id="questions"></div>
-    <div class="timer" id="timer"></div>
-    <button onclick="submitExam()">Submit Exam</button>
-  </div>
+  <div id="questions"></div>
+  <div class="timer" id="timer"></div>
+  <button onclick="submitExam()">Submit Exam</button>
+</div>
 
 <script>
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbwARikUbx2oTFCTYmx_l2Kb6XmDwWibQhbuXz1xOQ6Bj0-uQMR_3ghyzDEOeH2Kxe0_/exec';
+  const scriptURL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'; // Replace with your actual script URL
 
   let student = {};
   let timerInterval;
@@ -187,7 +219,7 @@
 
   function sanitize(input) {
     const div = document.createElement('div');
-    div.textContent = input; // safer
+    div.textContent = input;
     return div.innerHTML.trim();
   }
 
@@ -222,19 +254,12 @@
         document.getElementById("studentName").innerText = data.name;
 
         let photoURL = data.photo || "";
-
-        if (photoURL.startsWith("https://drive.google.com/file/d/")) {
-          const match = photoURL.match(/\/d\/([^\/]+)/);
-          if (match && match[1]) {
-            photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-          }
-        } else if (photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
-          // No change needed
-        } else {
-          photoURL = "default-profile.png";
+        if (photoURL.includes("drive.google.com/file/d/")) {
+          const id = photoURL.match(/\/d\/(.*?)\//)?.[1];
+          photoURL = `https://drive.google.com/uc?export=view&id=${id}`;
         }
 
-        document.getElementById("profileImage").src = photoURL;
+        document.getElementById("profileImage").src = photoURL || "default-profile.png";
 
         restoreSubject();
         startTimer();
@@ -251,21 +276,9 @@
   }
 
   const questionBank = {
-    "HTML": [
-      "What does HTML stand for?",
-      "Which tag is used for inserting images?",
-      "What tag is used to create links?"
-    ],
-    "CSS": [
-      "What does CSS stand for?",
-      "How do you change text color in CSS?",
-      "What CSS property sets background color?"
-    ],
-    "Basic Computer": [
-      "What is the full form of CPU?",
-      "Name one output device.",
-      "What is the function of RAM?"
-    ]
+    "HTML": ["What does HTML stand for?", "Which tag is used for inserting images?", "What tag is used to create links?"],
+    "CSS": ["What does CSS stand for?", "How do you change text color in CSS?", "What CSS property sets background color?"],
+    "Basic Computer": ["What is the full form of CPU?", "Name one output device.", "What is the function of RAM?"]
   };
 
   function loadQuestions() {
@@ -284,8 +297,7 @@
       div.className = "question";
       div.innerHTML = `
         <label>Q${i+1}: ${sanitize(q)}</label>
-        <input type="text" id="q${i+1}" placeholder="Your answer..." value="${sanitize(savedAnswer)}">
-      `;
+        <input type="text" id="q${i+1}" value="${sanitize(savedAnswer)}" placeholder="Your answer...">`;
       questionsDiv.appendChild(div);
     });
   }
@@ -297,10 +309,7 @@
       localStorage.setItem('timeLeft', timeLeft);
       updateTimer();
 
-      if (timeLeft === 300) {
-        alert("⚠️ Only 5 minutes left!");
-      }
-
+      if (timeLeft === 300) alert("⚠️ Only 5 minutes left!");
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         submitExam(true);
@@ -330,18 +339,12 @@
 
   function submitExam(auto = false) {
     const subject = document.getElementById("subject").value;
-    if (!subject) {
-      alert("Please select a subject.");
-      return;
-    }
+    if (!subject) return alert("Please select a subject.");
 
     if (!auto && !confirm("Are you sure you want to submit your exam?")) return;
 
-    const answers = [];
-    const questions = questionBank[subject];
-    questions.forEach((q, i) => {
-      const ans = document.getElementById(`q${i+1}`)?.value || "Not Answered";
-      answers.push(sanitize(ans));
+    const answers = questionBank[subject].map((q, i) => {
+      return sanitize(document.getElementById(`q${i+1}`)?.value || "Not Answered");
     });
 
     const submitButton = document.querySelector("button[onclick='submitExam()']");
@@ -369,14 +372,14 @@
         alert(auto ? "⌛ Time's up! Exam auto-submitted." : "✅ Exam submitted successfully!");
         location.reload();
       } else {
-        alert("❌ Submission failed. Please try again.");
+        alert("❌ Submission failed. Try again.");
       }
     })
     .catch(err => {
-      console.error("Submission error:", err);
+      console.error("Submit error:", err);
       submitButton.disabled = false;
       submitButton.innerText = "Submit Exam";
-      alert("⚠️ Network error while submitting.");
+      alert("⚠️ Network error. Try again.");
     });
   }
 
@@ -405,22 +408,7 @@
         document.getElementById("examContainer").style.display = "block";
         document.getElementById("topbar").style.display = "flex";
         document.getElementById("studentName").innerText = student.name;
-
-        let photoURL = student.photo || "";
-
-        if (photoURL.startsWith("https://drive.google.com/file/d/")) {
-          const match = photoURL.match(/\/d\/([^\/]+)/);
-          if (match && match[1]) {
-            photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-          }
-        } else if (photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
-          // No change needed
-        } else {
-          photoURL = "default-profile.png";
-        }
-
-        document.getElementById("profileImage").src = photoURL;
-
+        document.getElementById("profileImage").src = student.photo || "default-profile.png";
         restoreSubject();
         startTimer();
       } else {
