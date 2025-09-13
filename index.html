@@ -1,462 +1,104 @@
-<!-- 💡 Same DOCTYPE, head, styles — your code untouched except added features -->
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Exam Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>परीक्षा पोर्टल</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f4f4;
-    }
-
-    .logo img {
-      max-height: 40px;
-      width: auto;
-    }
-
-    .topbar {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: #333;
-      color: #fff;
-      padding: 10px 15px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 999;
-    }
-
-    .logo {
-      font-weight: bold;
-      font-size: 18px;
-      flex: 1;
-    }
-
-    .profile {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .profile img {
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-    }
-
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
     .container {
-      margin-top: 80px;
-      padding: 20px;
       max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-      background: white;
+      background: #fff;
+      margin: 30px auto;
+      padding: 20px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
-    label, select, input[type="text"], input[type="email"], input[type="password"], textarea {
-      display: block;
-      margin: 12px 0;
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-    }
-
-    .question {
-      margin: 20px 0;
-    }
-
+    h2 { text-align: center; color: #333; }
+    .question { margin-bottom: 20px; }
+    .options label { display: block; margin: 5px 0; }
     button {
-      padding: 14px 18px;
-      background: #28a745;
+      background: #007bff;
       color: white;
+      padding: 10px 16px;
       border: none;
-      cursor: pointer;
       font-size: 16px;
-      width: 100%;
-      margin-top: 10px;
-      border-radius: 5px;
-    }
-
-    .logout-button {
-      background: #dc3545;
-      margin-top: 0;
-      width: auto;
-      padding: 10px 14px;
-    }
-
-    .timer {
-      font-weight: bold;
-      text-align: center;
-      margin-top: 20px;
-      font-size: 18px;
-    }
-
-    .timer.warning {
-      color: orange;
-    }
-
-    .timer.critical {
-      color: red;
-    }
-
-    #loginError {
-      color: red;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .password-toggle {
-      position: relative;
-    }
-
-    .password-toggle span {
-      position: absolute;
-      right: 20px;
-      top: 38px;
       cursor: pointer;
+      margin-top: 20px;
+      border-radius: 5px;
+      width: 100%;
     }
-
-    @media screen and (max-width: 600px) {
-      .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .profile {
-        justify-content: space-between;
-        width: 100%;
-        margin-top: 10px;
-      }
-
-      .container {
-        margin-top: 90px;
-        padding: 15px;
-      }
-
-      button {
-        font-size: 16px;
-        padding: 12px;
-      }
-
-      .timer {
-        font-size: 16px;
-      }
-    }
+    button:hover { background: #0056b3; }
+    .result { margin-top: 30px; }
   </style>
 </head>
 <body>
 
-  <div class="topbar" id="topbar" style="display:none">
-    <div class="logo">
-      <img src="nssiddlogo.png" style="height: 30px; vertical-align: middle; margin-right: 8px;" alt="logo">
-      NS SIDD TUTORIAL
-    </div>
+<div class="container" id="examContent">
+  <h2>📝 ऑनलाइन परीक्षा (MCQ आधारित)</h2>
 
-    <div class="profile">
-      <span id="studentName"></span>
-      <img id="profileImage" src="" alt="Profile" onerror="this.src='default-profile.png';">
-      <button class="logout-button" onclick="logout()">Logout</button>
-    </div>
-  </div>
+  <div id="questions"></div>
 
-  <div class="container" id="loginContainer">
-    <div style="text-align: center; margin-bottom: 20px;">
-      <img src="nssiddlogo.png" style="height: 60px;" alt="logo">
-    </div>
+  <button onclick="submitExam()">📤 उत्तर सबमिट करें</button>
+  <button onclick="downloadPDF()">📄 PDF डाउनलोड करें</button>
 
-    <h2>🔐 Student Login</h2>
-    <form onsubmit="event.preventDefault(); login();">
-      <input type="email" id="email" placeholder="Enter Email" required>
-
-      <div class="password-toggle">
-        <input type="password" id="password" placeholder="Enter Password" required>
-        <span onclick="togglePassword()">👁️</span>
-      </div>
-
-      <button type="submit">Login</button>
-      <div id="loginError"></div>
-    </form>
-  </div>
-
-  <div class="container" id="examContainer" style="display:none;">
-    <h2>📝 Exam</h2>
-    <div>
-      <label for="subject">Select Subject</label>
-      <select id="subject" onchange="loadQuestions()">
-        <option value="">--Select--</option>
-        <option value="HTML">HTML</option>
-        <option value="CSS">CSS</option>
-        <option value="Basic Computer">Basic Computer</option>
-      </select>
-    </div>
-
-    <div id="questions"></div>
-    <div class="timer" id="timer"></div>
-    <button onclick="submitExam()">Submit Exam</button>
-  </div>
+  <div class="result" id="result"></div>
+</div>
 
 <script>
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbwARikUbx2oTFCTYmx_l2Kb6XmDwWibQhbuXz1xOQ6Bj0-uQMR_3ghyzDEOeH2Kxe0_/exec';
-
-  let student = {};
-  let timerInterval;
-  let timeLeft = parseInt(localStorage.getItem('timeLeft')) || 3600;
-
-  function sanitize(input) {
-    const div = document.createElement('div');
-    div.textContent = input;
-    return div.innerHTML.trim();
-  }
-
-  function togglePassword() {
-    const pass = document.getElementById("password");
-    pass.type = pass.type === "password" ? "text" : "password";
-  }
-
-  function login() {
-    const email = sanitize(document.getElementById("email").value.trim());
-    const password = sanitize(document.getElementById("password").value.trim());
-
-    if (!email || !password) {
-      document.getElementById("loginError").innerText = "⚠️ Email and Password are required.";
-      return;
+  const questionBank = [
+    {
+      q: "HTML का पूरा नाम क्या है?",
+      options: ["Hyper Text Markup Language", "HighText Machine Language", "Hyperlink and Text Markup Language", "None of these"],
+      answer: 0
+    },
+    {
+      q: "CPU का कार्य क्या है?",
+      options: ["प्रिंटिंग", "प्रोसेसिंग", "स्टोरेज", "स्कैनिंग"],
+      answer: 1
+    },
+    {
+      q: "RAM किस प्रकार की मेमोरी है?",
+      options: ["स्थायी", "अस्थायी", "इनपुट", "आउटपुट"],
+      answer: 1
     }
-
-    const loginButton = document.querySelector("button[type='submit']");
-    loginButton.disabled = true;
-    loginButton.innerText = "Logging in...";
-
-    fetch(scriptURL, {
-      method: 'POST',
-      body: new URLSearchParams({ action: 'login', email, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-      loginButton.disabled = false;
-      loginButton.innerText = "Login";
-
-      if (data.success) {
-        student = data;
-        localStorage.setItem('student', JSON.stringify(data));
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("examContainer").style.display = "block";
-        document.getElementById("topbar").style.display = "flex";
-        document.getElementById("studentName").innerText = data.name;
-
-        let photoURL = data.photo || "";
-        if (photoURL.startsWith("https://drive.google.com/file/d/")) {
-          const match = photoURL.match(/\/d\/([^\/]+)/);
-          if (match && match[1]) {
-            photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-          }
-        } else if (!photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
-          photoURL = "default-profile.png";
-        }
-
-        document.getElementById("profileImage").src = photoURL;
-        restoreSubject();
-        startTimer();
-      } else {
-        document.getElementById("loginError").innerText = "❌ Invalid Email or Password";
-      }
-    })
-    .catch(err => {
-      console.error("Login error:", err);
-      loginButton.disabled = false;
-      loginButton.innerText = "Login";
-      document.getElementById("loginError").innerText = "⚠️ Network error. Try again.";
-    });
-  }
-
-  const questionBank = {
-    "HTML": [
-      "What does HTML stand for?",
-      "Which tag is used for inserting images?",
-      "What tag is used to create links?"
-    ],
-    "CSS": [
-      "What does CSS stand for?",
-      "How do you change text color in CSS?",
-      "What CSS property sets background color?"
-    ],
-    "Basic Computer": [
-      "What is the full form of CPU?",
-      "Name one output device.",
-      "What is the function of RAM?"
-    ]
-  };
+  ];
 
   function loadQuestions() {
-    const subject = document.getElementById("subject").value;
-    const questionsDiv = document.getElementById("questions");
-    questionsDiv.innerHTML = "";
-
-    if (!subject || !questionBank[subject]) return;
-
-    localStorage.setItem("selectedSubject", subject);
-    document.getElementById("subject").disabled = true; // 🔒 Disable after selection
-
-    const questions = questionBank[subject];
-    questions.forEach((q, i) => {
-      const savedAnswer = localStorage.getItem(`answer_q${i+1}`) || '';
-      const div = document.createElement("div");
-      div.className = "question";
-      div.innerHTML = `
-        <label>Q${i+1}: ${sanitize(q)}</label>
-        <textarea id="q${i+1}" placeholder="Your answer...">${sanitize(savedAnswer)}</textarea>
-      `;
-      questionsDiv.appendChild(div);
+    const container = document.getElementById('questions');
+    questionBank.forEach((q, index) => {
+      const div = document.createElement('div');
+      div.className = 'question';
+      div.innerHTML = `<strong>प्रश्न ${index + 1}:</strong> ${q.q}<div class="options">
+        ${q.options.map((opt, i) => `
+          <label><input type="radio" name="q${index}" value="${i}"> ${opt}</label>
+        `).join('')}
+      </div>`;
+      container.appendChild(div);
     });
   }
 
-  function startTimer() {
-    updateTimer();
-    timerInterval = setInterval(() => {
-      timeLeft--;
-      localStorage.setItem('timeLeft', timeLeft);
-      updateTimer();
-
-      if (timeLeft === 300) alert("⚠️ Only 5 minutes left!");
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        submitExam(true);
-      }
-    }, 1000);
-
-    setInterval(autoSaveAnswers, 30000);
-  }
-
-  function updateTimer() {
-    const min = Math.floor(timeLeft / 60);
-    const sec = timeLeft % 60;
-    const timer = document.getElementById("timer");
-    timer.innerText = `Time Left: ${min}:${sec < 10 ? '0' : ''}${sec}`;
-
-    if (timeLeft <= 60) timer.className = "timer critical";
-    else if (timeLeft <= 300) timer.className = "timer warning";
-    else timer.className = "timer";
-  }
-
-  function autoSaveAnswers() {
-    const subject = document.getElementById("subject").value;
-    if (!subject) return;
-    const questions = questionBank[subject];
-    questions.forEach((q, i) => {
-      const input = document.getElementById(`q${i+1}`);
-      if (input) {
-        localStorage.setItem(`answer_q${i+1}`, input.value.trim());
+  function submitExam() {
+    let score = 0;
+    questionBank.forEach((q, index) => {
+      const selected = document.querySelector(`input[name="q${index}"]:checked`);
+      if (selected && parseInt(selected.value) === q.answer) {
+        score++;
       }
     });
+
+    const result = document.getElementById('result');
+    result.innerHTML = `<h3>आपका स्कोर: ${score} / ${questionBank.length}</h3>`;
   }
 
-  function submitExam(auto = false) {
-    const subject = document.getElementById("subject").value;
-    if (!subject) {
-      alert("Please select a subject.");
-      return;
-    }
-
-    if (!auto && !confirm("Are you sure you want to submit your exam?")) return;
-
-    const answers = [];
-    const questions = questionBank[subject];
-    questions.forEach((q, i) => {
-      const ans = document.getElementById(`q${i+1}`)?.value || "Not Answered";
-      answers.push(sanitize(ans));
-    });
-
-    const submitButton = document.querySelector("button[onclick='submitExam()']");
-    submitButton.disabled = true;
-    submitButton.innerText = "Submitting...";
-
-    fetch(scriptURL, {
-      method: 'POST',
-      body: new URLSearchParams({
-        action: 'submit',
-        name: student.name,
-        email: student.email,
-        subject: subject,
-        answers: JSON.stringify(answers)
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      submitButton.disabled = false;
-      submitButton.innerText = "Submit Exam";
-
-      if (data.success) {
-        clearInterval(timerInterval);
-        localStorage.clear();
-        alert(auto
-          ? "⌛ Time's up! Exam auto-submitted."
-          : `✅ Exam submitted successfully at ${new Date().toLocaleTimeString()}`);
-        location.reload();
-      } else {
-        alert("❌ Submission failed. Please try again.");
-      }
-    })
-    .catch(err => {
-      console.error("Submission error:", err);
-      submitButton.disabled = false;
-      submitButton.innerText = "Submit Exam";
-      alert("⚠️ Network error while submitting.");
-    });
+  function downloadPDF() {
+    const element = document.getElementById('examContent');
+    html2pdf().from(element).save('pariksha_result.pdf');
   }
 
-  function restoreSubject() {
-    const savedSubject = localStorage.getItem("selectedSubject");
-    if (savedSubject) {
-      document.getElementById("subject").value = savedSubject;
-      loadQuestions();
-    }
-  }
-
-  function logout() {
-    if (confirm("Do you really want to logout?")) {
-      clearInterval(timerInterval);
-      localStorage.clear();
-      location.reload();
-    }
-  }
-
-  window.onload = () => {
-    window.onbeforeunload = autoSaveAnswers;
-
-    const savedStudent = localStorage.getItem('student');
-    if (savedStudent) {
-      if (confirm("Resume your previous session?")) {
-        student = JSON.parse(savedStudent);
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("examContainer").style.display = "block";
-        document.getElementById("topbar").style.display = "flex";
-        document.getElementById("studentName").innerText = student.name;
-
-        let photoURL = student.photo || "";
-        if (photoURL.startsWith("https://drive.google.com/file/d/")) {
-          const match = photoURL.match(/\/d\/([^\/]+)/);
-          if (match && match[1]) {
-            photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-          }
-        } else if (!photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
-          photoURL = "default-profile.png";
-        }
-
-        document.getElementById("profileImage").src = photoURL;
-        restoreSubject();
-        startTimer();
-      } else {
-        localStorage.clear();
-      }
-    }
-  };
+  window.onload = loadQuestions;
 </script>
 
 </body>
