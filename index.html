@@ -83,6 +83,13 @@
       border-radius: 5px;
     }
 
+    .logout-button {
+      background: #dc3545;
+      margin-top: 0;
+      width: auto;
+      padding: 10px 14px;
+    }
+
     .timer {
       font-weight: bold;
       color: red;
@@ -129,30 +136,30 @@
 
   <div class="topbar" id="topbar" style="display:none">
     <div class="logo">
-  <img src="nssiddlogo.png" 
-       style="height: 30px; vertical-align: middle; margin-right: 8px;" alt="logo">
-       NS SIDD TUTORIAL
-</div>
+      <img src="nssiddlogo.png" style="height: 30px; vertical-align: middle; margin-right: 8px;" alt="logo">
+      NS SIDD TUTORIAL
+    </div>
 
     <div class="profile">
       <span id="studentName"></span>
       <img id="profileImage" src="" alt="Profile">
+      <button class="logout-button" onclick="logout()">Logout</button>
     </div>
   </div>
 
   <div class="container" id="loginContainer">
-  <div style="text-align: center; margin-bottom: 20px;">
-    <img src="nssiddlogo.png"          
-         style="height: 60px;" alt="logo">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <img src="nssiddlogo.png" style="height: 60px;" alt="logo">
+    </div>
+
+    <h2>🔐 Student Login</h2>
+    <form onsubmit="event.preventDefault(); login();">
+      <input type="email" id="email" placeholder="Enter Email" required>
+      <input type="password" id="password" placeholder="Enter Password" required>
+      <button type="submit">Login</button>
+      <div id="loginError"></div>
+    </form>
   </div>
-
-  <h2>🔐 Student Login</h2>
-  <input type="email" id="email" placeholder="Enter Email" required>
-  <input type="password" id="password" placeholder="Enter Password" required>
-  <button onclick="login()">Login</button>
-  <div id="loginError"></div>
-</div>
-
 
   <div class="container" id="examContainer" style="display:none;">
     <h2>📝 Exam</h2>
@@ -180,7 +187,7 @@
 
   function sanitize(input) {
     const div = document.createElement('div');
-    div.innerText = input;
+    div.textContent = input; // safer
     return div.innerHTML.trim();
   }
 
@@ -193,7 +200,7 @@
       return;
     }
 
-    const loginButton = document.querySelector("button[onclick='login()']");
+    const loginButton = document.querySelector("button[type='submit']");
     loginButton.disabled = true;
     loginButton.innerText = "Logging in...";
 
@@ -221,7 +228,8 @@
         document.getElementById("loginError").innerText = "❌ Invalid Email or Password";
       }
     })
-    .catch(() => {
+    .catch(err => {
+      console.error("Login error:", err);
       loginButton.disabled = false;
       loginButton.innerText = "Login";
       document.getElementById("loginError").innerText = "⚠️ Network error. Try again.";
@@ -255,7 +263,8 @@
 
     localStorage.setItem("selectedSubject", subject);
 
-    questionBank[subject].forEach((q, i) => {
+    const questions = questionBank[subject];
+    questions.forEach((q, i) => {
       const savedAnswer = localStorage.getItem(`answer_q${i+1}`) || '';
       const div = document.createElement("div");
       div.className = "question";
@@ -284,7 +293,7 @@
       }
     }, 1000);
 
-    setInterval(autoSaveAnswers, 30000); // auto-save every 30s
+    setInterval(autoSaveAnswers, 30000);
   }
 
   function updateTimer() {
@@ -294,12 +303,15 @@
   }
 
   function autoSaveAnswers() {
-    for (let i = 1; i <= 3; i++) {
-      const input = document.getElementById(`q${i}`);
+    const subject = document.getElementById("subject").value;
+    if (!subject) return;
+    const questions = questionBank[subject];
+    questions.forEach((q, i) => {
+      const input = document.getElementById(`q${i+1}`);
       if (input) {
-        localStorage.setItem(`answer_q${i}`, input.value.trim());
+        localStorage.setItem(`answer_q${i+1}`, input.value.trim());
       }
-    }
+    });
   }
 
   function submitExam(auto = false) {
@@ -309,11 +321,14 @@
       return;
     }
 
+    if (!auto && !confirm("Are you sure you want to submit your exam?")) return;
+
     const answers = [];
-    for (let i = 1; i <= 3; i++) {
-      const ans = document.getElementById(`q${i}`)?.value || "Not Answered";
+    const questions = questionBank[subject];
+    questions.forEach((q, i) => {
+      const ans = document.getElementById(`q${i+1}`)?.value || "Not Answered";
       answers.push(sanitize(ans));
-    }
+    });
 
     const submitButton = document.querySelector("button[onclick='submitExam()']");
     submitButton.disabled = true;
@@ -343,7 +358,8 @@
         alert("❌ Submission failed. Please try again.");
       }
     })
-    .catch(() => {
+    .catch(err => {
+      console.error("Submission error:", err);
       submitButton.disabled = false;
       submitButton.innerText = "Submit Exam";
       alert("⚠️ Network error while submitting.");
@@ -358,24 +374,32 @@
     }
   }
 
-  // Auto-resume session if student info exists
+  function logout() {
+    if (confirm("Do you really want to logout?")) {
+      clearInterval(timerInterval);
+      localStorage.clear();
+      location.reload();
+    }
+  }
+
   window.onload = () => {
     const savedStudent = localStorage.getItem('student');
     if (savedStudent) {
-      student = JSON.parse(savedStudent);
-      document.getElementById("loginContainer").style.display = "none";
-      document.getElementById("examContainer").style.display = "block";
-      document.getElementById("topbar").style.display = "flex";
-      document.getElementById("studentName").innerText = student.name;
-      document.getElementById("profileImage").src = student.photo;
-
-      restoreSubject();
-      startTimer();
+      if (confirm("Resume your previous session?")) {
+        student = JSON.parse(savedStudent);
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("examContainer").style.display = "block";
+        document.getElementById("topbar").style.display = "flex";
+        document.getElementById("studentName").innerText = student.name;
+        document.getElementById("profileImage").src = student.photo;
+        restoreSubject();
+        startTimer();
+      } else {
+        localStorage.clear();
+      }
     }
   };
 </script>
 
 </body>
 </html>
-
-
