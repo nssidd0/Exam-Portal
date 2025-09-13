@@ -223,15 +223,18 @@
 
         let photoURL = data.photo || "";
 
-        // Google Drive link ko direct image link me convert karo
-        if (photoURL.includes("drive.google.com") && photoURL.includes("/file/d/")) {
+        if (photoURL.startsWith("https://drive.google.com/file/d/")) {
           const match = photoURL.match(/\/d\/([^\/]+)/);
           if (match && match[1]) {
             photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
           }
+        } else if (photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
+          // No change needed
+        } else {
+          photoURL = "default-profile.png";
         }
 
-        console.log("Profile photo URL:", photoURL);
+        document.getElementById("profileImage").src = photoURL;
 
         restoreSubject();
         startTimer();
@@ -404,12 +407,18 @@
         document.getElementById("studentName").innerText = student.name;
 
         let photoURL = student.photo || "";
-        if (photoURL.includes("drive.google.com") && photoURL.includes("/file/d/")) {
+
+        if (photoURL.startsWith("https://drive.google.com/file/d/")) {
           const match = photoURL.match(/\/d\/([^\/]+)/);
           if (match && match[1]) {
             photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
           }
+        } else if (photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
+          // No change needed
+        } else {
+          photoURL = "default-profile.png";
         }
+
         document.getElementById("profileImage").src = photoURL;
 
         restoreSubject();
@@ -423,4 +432,3 @@
 
 </body>
 </html>
-
