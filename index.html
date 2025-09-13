@@ -2,186 +2,409 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exam Portal</title>
-  
-  <!-- Aapka CSS yahin paste karen, main koi change nahi kiya -->
   <style>
-    /* Yahan apna pehla CSS code paste karen */
+    /* Aapka pura CSS yahin paste karen, maine bilkul change nahi kiya */
+    :root {
+      --primary: #4a90e2;
+      --accent: #00b894;
+      --danger: #e74c3c;
+      --bg: #f1f2f6;
+      --white: #fff;
+      --text-dark: #2d3436;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f5f5f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
     }
 
-    h1 {
-      color: #333;
+    .topbar {
+      position: sticky;
+      top: 0;
+      background: var(--white);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
     }
 
-    label {
+    .topbar .logo {
       font-weight: bold;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
     }
 
-    select, input[type="text"] {
-      padding: 5px;
-      margin: 10px 0;
-      width: 300px;
+    .topbar .logo img {
+      height: 32px;
+      margin-right: 10px;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+    }
+
+    .logout-button {
+      background: var(--danger);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: var(--white);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form input,
+    select,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      outline: none;
+    }
+
+    form input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
     }
 
     button {
-      padding: 10px 20px;
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      border: none;
+      color: white;
       font-size: 16px;
+      border-radius: 6px;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
 
-    #questionsContainer div {
-      margin-bottom: 15px;
-      background-color: white;
-      padding: 10px;
-      border-radius: 5px;
+    button:hover {
+      background: #01996f;
+    }
+
+    .question {
+      margin: 20px 0;
+    }
+
+    .question label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .timer {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--danger);
+      margin: 20px 0;
+    }
+
+    #loginError {
+      color: var(--danger);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    @media screen and (max-width: 600px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .profile {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .container {
+        margin: 20px 15px;
+        padding: 20px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>Exam Portal</h1>
+<div class="topbar" id="topbar" style="display:none">
+  <div class="logo">
+    <img src="nssiddlogo.png" alt="logo">
+    NS SIDD TUTORIAL
+  </div>
+  <div class="profile">
+    <span id="studentName"></span>
+    <img id="profileImage" src="" alt="Profile" onerror="this.src='default-profile.png';">
+    <button class="logout-button" onclick="logout()">Logout</button>
+  </div>
+</div>
 
-  <label for="subject">Select Subject:</label>
-  <select id="subject" onchange="loadQuestions()">
-    <option value="">--Select--</option>
-    <option value="HTML">HTML</option>
-    <option value="CSS">CSS</option>
-    <option value="Basic Computer">Basic Computer</option>
-  </select>
+<div class="container" id="loginContainer">
+  <div style="text-align:center;">
+    <img src="nssiddlogo.png" style="height: 60px;" alt="logo">
+  </div>
+  <h2>🔐 Student Login</h2>
+  <form onsubmit="event.preventDefault(); login();">
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <button type="submit">Login</button>
+    <div id="loginError"></div>
+  </form>
+</div>
 
-  <div id="questionsContainer"></div>
+<div class="container" id="examContainer" style="display:none;">
+  <h2>📝 Exam</h2>
+  <div>
+    <label for="subject">Select Subject</label>
+    <select id="subject" onchange="loadQuestions()">
+      <option value="">--Select--</option>
+      <option value="HTML">HTML</option>
+      <option value="CSS">CSS</option>
+      <option value="Basic Computer">Basic Computer</option>
+    </select>
+  </div>
 
+  <div id="questions"></div>
+  <div class="timer" id="timer"></div>
   <button onclick="submitExam()">Submit Exam</button>
+</div>
 
-  <script>
-    const student = {
-      name: "AFREEN SIDDIQUI",
-      email: "ahma26790@gmail.com"
-    };
+<script>
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbwARikUbx2oTFCTYmx_l2Kb6XmDwWibQhbuXz1xOQ6Bj0-uQMR_3ghyzDEOeH2Kxe0_/exec'; // Apna script URL daalna
 
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwARikUbx2oTFCTYmx_l2Kb6XmDwWibQhbuXz1xOQ6Bj0-uQMR_3ghyzDEOeH2Kxe0_/exec';
+  let student = {};
+  let timerInterval;
+  let timeLeft = parseInt(localStorage.getItem('timeLeft')) || 3600;
 
-    const questionBank = {
-      "HTML": [
-        "What does HTML stand for?",
-        "Which tag is used to add an image?",
-        "Which tag creates a hyperlink?"
-      ],
-      "CSS": [
-        "What does CSS stand for?",
-        "Which property changes text color?",
-        "Which property changes background color?"
-      ],
-      "Basic Computer": [
-        "What is CPU?",
-        "What device displays visuals?",
-        "What is RAM used for?"
-      ]
-    };
+  function sanitize(input) {
+    const div = document.createElement('div');
+    div.textContent = input;
+    return div.innerHTML.trim();
+  }
 
-    function loadQuestions() {
-      const subject = document.getElementById('subject').value;
-      const container = document.getElementById('questionsContainer');
-      container.innerHTML = '';
+  function login() {
+    const email = sanitize(document.getElementById("email").value.trim());
+    const password = sanitize(document.getElementById("password").value.trim());
 
-      if (!subject) return;
-
-      const questions = questionBank[subject];
-      questions.forEach((q, i) => {
-        const div = document.createElement('div');
-        div.innerHTML = `
-          <label><strong>Q${i + 1}:</strong> ${q}</label><br/>
-          <input type="text" id="q${i + 1}" placeholder="Your answer here" />
-        `;
-        container.appendChild(div);
-      });
+    if (!email || !password) {
+      document.getElementById("loginError").innerText = "⚠️ Email and Password are required.";
+      return;
     }
 
-    const answerKey = {
-      "HTML": ["HyperText Markup Language", "img", "a"],
-      "CSS": ["Cascading Style Sheets", "color", "background-color"],
-      "Basic Computer": ["Central Processing Unit", "Monitor", "Temporary storage of data"]
-    };
+    const loginButton = document.querySelector("button[type='submit']");
+    loginButton.disabled = true;
+    loginButton.innerText = "Logging in...";
 
-    function sanitize(input) {
-      const div = document.createElement('div');
-      div.textContent = input;
-      return div.innerHTML.trim();
-    }
+    fetch(scriptURL, {
+      method: 'POST',
+      body: new URLSearchParams({ action: 'login', email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+      loginButton.disabled = false;
+      loginButton.innerText = "Login";
 
-    function calculateScore(answers, subject) {
-      if (!answerKey[subject]) return 0;
-      let score = 0;
-      const correctAnswers = answerKey[subject];
-      for(let i=0; i<answers.length; i++) {
-        if(answers[i].toLowerCase().trim() === correctAnswers[i].toLowerCase().trim()) {
-          score++;
-        }
+      if (data.success) {
+        student = data.student;
+        showExam();
+      } else {
+        document.getElementById("loginError").innerText = data.message || "Login failed.";
       }
-      return score;
-    }
+    })
+    .catch(() => {
+      loginButton.disabled = false;
+      loginButton.innerText = "Login";
+      document.getElementById("loginError").innerText = "Network error, try again.";
+    });
+  }
 
-    function submitExam() {
-      const subject = document.getElementById("subject").value;
-      if (!subject) return alert("Please select a subject.");
+  function showExam() {
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("topbar").style.display = "flex";
+    document.getElementById("examContainer").style.display = "block";
 
-      if (!confirm("Are you sure you want to submit your exam?")) return;
+    document.getElementById("studentName").innerText = student.name || "Student";
+    document.getElementById("profileImage").src = student.profileImage || "default-profile.png";
 
-      const answersArray = questionBank[subject].map((q, i) => {
-        return sanitize(document.getElementById(`q${i+1}`)?.value || "Not Answered");
-      });
+    startTimer();
+  }
 
-      const answers = JSON.stringify(answersArray);
-      const totalQuestions = answersArray.length;
-      const score = calculateScore(answersArray, subject);
+  function logout() {
+    localStorage.removeItem('timeLeft');
+    student = {};
+    document.getElementById("loginContainer").style.display = "block";
+    document.getElementById("topbar").style.display = "none";
+    document.getElementById("examContainer").style.display = "none";
+  }
 
-      const submitBtn = event.target || document.querySelector("button[onclick='submitExam()']");
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Submitting...";
+  const questionBank = {
+    "HTML": [
+      "What does HTML stand for?",
+      "Which tag is used to add an image?",
+      "Which tag creates a hyperlink?"
+    ],
+    "CSS": [
+      "What does CSS stand for?",
+      "Which property changes text color?",
+      "Which property changes background color?"
+    ],
+    "Basic Computer": [
+      "What is CPU?",
+      "What device displays visuals?",
+      "What is RAM used for?"
+    ]
+  };
+
+  const answerKey = {
+    "HTML": ["HyperText Markup Language", "img", "a"],
+    "CSS": ["Cascading Style Sheets", "color", "background-color"],
+    "Basic Computer": ["Central Processing Unit", "Monitor", "Temporary storage of data"]
+  };
+
+  function loadQuestions() {
+    const subject = document.getElementById("subject").value;
+    const questionsDiv = document.getElementById("questions");
+    questionsDiv.innerHTML = "";
+    if (!subject) return;
+
+    questionBank[subject].forEach((q, i) => {
+      questionsDiv.innerHTML += `
+        <div class="question">
+          <label for="q${i}">${i + 1}. ${q}</label>
+          <input type="text" id="q${i}" />
+        </div>
+      `;
+    });
+  }
+
+  function calculateScore(answers, subject) {
+    if (!answerKey[subject]) return 0;
+    let score = 0;
+    answers.forEach((ans, i) => {
+      if(ans.trim().toLowerCase() === answerKey[subject][i].toLowerCase()) {
+        score++;
       }
+    });
+    return score;
+  }
 
-      fetch(scriptURL, {
-        method: 'POST',
-        body: new URLSearchParams({
-          action: 'submit',
-          name: student.name,
-          email: student.email,
-          subject: subject,
-          answers: answers,
-          score: score.toString(),
-          total: totalQuestions.toString()
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerText = "Submit Exam";
-        }
-
-        if (data.success) {
-          alert("✅ Exam submitted successfully!");
-          location.reload();
-        } else {
-          alert("❌ Submission failed: " + (data.message || ""));
-        }
-      })
-      .catch(err => {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerText = "Submit Exam";
-        }
-        alert("⚠️ Network error. Try again.");
-        console.error(err);
-      });
+  function submitExam() {
+    const subject = document.getElementById("subject").value;
+    if (!subject) {
+      alert("Please select a subject");
+      return;
     }
-  </script>
+
+    const answers = questionBank[subject].map((q, i) => {
+      return sanitize(document.getElementById(`q${i}`).value || "Not Answered");
+    });
+
+    const score = calculateScore(answers, subject);
+    const total = answers.length;
+
+    if (!confirm(`Are you sure you want to submit? Your score will be ${score} / ${total}`)) return;
+
+    const btn = event.target;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = "Submitting...";
+    }
+
+    fetch(scriptURL, {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'submit',
+        name: student.name,
+        email: student.email,
+        subject: subject,
+        answers: JSON.stringify(answers),
+        score: score.toString(),
+        total: total.toString()
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = "Submit Exam";
+      }
+      if (data.success) {
+        alert("✅ Submitted Successfully!");
+        location.reload();
+      } else {
+        alert("❌ Submission failed: " + (data.message || ""));
+      }
+    })
+    .catch(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = "Submit Exam";
+      }
+      alert("Network error, please try again.");
+    });
+  }
+
+  function startTimer() {
+    const timerEl = document.getElementById("timer");
+
+    timerInterval = setInterval(() => {
+      let minutes = Math.floor(timeLeft / 60);
+      let seconds = timeLeft % 60;
+      timerEl.innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        alert("Time's up! Your exam will be submitted automatically.");
+        submitExam();
+      } else {
+        timeLeft--;
+        localStorage.setItem('timeLeft', timeLeft);
+      }
+    }, 1000);
+  }
+</script>
 
 </body>
 </html>
