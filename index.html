@@ -142,7 +142,7 @@
 
     <div class="profile">
       <span id="studentName"></span>
-      <img id="profileImage" src="" alt="Profile">
+      <img id="profileImage" src="" alt="Profile" onerror="this.src='default-profile.png';">
       <button class="logout-button" onclick="logout()">Logout</button>
     </div>
   </div>
@@ -220,7 +220,17 @@
         document.getElementById("examContainer").style.display = "block";
         document.getElementById("topbar").style.display = "flex";
         document.getElementById("studentName").innerText = data.name;
-        document.getElementById("profileImage").src = data.photo;
+        let photoURL = data.photo || "";  // fallback to empty if null
+
+// Optional: Convert Google Drive view link to direct link
+if (photoURL.includes("drive.google.com") && photoURL.includes("/file/d/")) {
+  const match = photoURL.match(/\/d\/(.*?)\//);
+  if (match && match[1]) {
+    photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  }
+}
+
+document.getElementById("profileImage").src = photoURL;
 
         restoreSubject();
         startTimer();
@@ -403,3 +413,4 @@
 
 </body>
 </html>
+
