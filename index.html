@@ -217,25 +217,18 @@
 </div>
 
 <div class="container" id="thankYouScreen" style="display:none;">
-  <h2>✅ Exam Submitted</h2>
-  <p>Thank you for submitting your exam, <span id="submittedStudentName"></span>.</p>
-  <p>Subject: <span id="submittedSubject"></span></p>
-  <p>Your responses have been recorded.</p>
+  <h2>🎉 Thank You, <span id="submittedStudentName"></span>!</h2>
+  <p>Subject: <strong id="submittedSubject"></strong></p>
+  <p>Your Score: <strong id="submittedScore"></strong></p>
+  <p>✅ Your answers have been submitted successfully.</p>
 </div>
 
 <script>
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbwARikUbx2oTFCTYmx_l2Kb6XmDwWibQhbuXz1xOQ6Bj0-uQMR_3ghyzDEOeH2Kxe0_/exec';
+  const scriptURL = 'YOUR_GOOGLE_SCRIPT_URL'; // Replace this with your actual script URL
 
   let student = {};
   let timerInterval;
   let endTime;
-
-  window.addEventListener('beforeunload', (e) => {
-    if (document.getElementById('examContainer').style.display === 'block') {
-      e.preventDefault();
-      e.returnValue = '';
-    }
-  });
 
   const sanitize = (input) => {
     const div = document.createElement('div');
@@ -244,67 +237,41 @@
   };
 
   const questionBank = {
-    "HTML": ["What does HTML stand for?", "Which tag is used for inserting images?", "What tag is used to create links?"],
-    "CSS": ["What does CSS stand for?", "How do you change text color in CSS?", "What CSS property sets background color?"],
-    "Basic Computer": ["What is the full form of CPU?", "Name one output device.", "What is the function of RAM?"]
-  };
-
-  const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
-
-  function login() {
-    const email = sanitize(document.getElementById("email").value.trim());
-    const password = sanitize(document.getElementById("password").value.trim());
-
-    if (!email || !password) {
-      document.getElementById("loginError").innerText = "⚠️ Email and Password are required.";
-      return;
-    }
-
-    const loginButton = document.querySelector("button[type='submit']");
-    loginButton.disabled = true;
-    loginButton.innerText = "Logging in...";
-
-    fetch(scriptURL, {
-      method: 'POST',
-      body: new URLSearchParams({ action: 'login', email, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-      loginButton.disabled = false;
-      loginButton.innerText = "Login";
-
-      if (data.success) {
-        student = data;
-        localStorage.setItem('student', JSON.stringify(data));
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("examContainer").style.display = "block";
-        document.getElementById("topbar").style.display = "flex";
-        document.getElementById("studentName").innerText = data.name;
-
-        let photoURL = data.photo || "";
-        if (photoURL.includes("drive.google.com/file/d/")) {
-          const id = photoURL.match(/\/d\/(.*?)\//)?.[1];
-          photoURL = `https://drive.google.com/uc?export=view&id=${id}`;
-        }
-
-        document.getElementById("profileImage").src = photoURL || "default-profile.png";
-
-        if (!localStorage.getItem('examEndTime')) {
-          const end = Date.now() + 3600000;
-          localStorage.setItem('examEndTime', end);
-        }
-        startTimer();
-        restoreSubject();
-      } else {
-        document.getElementById("loginError").innerText = "❌ Invalid Email or Password";
+    "HTML": [
+      {
+        question: "What does HTML stand for?",
+        options: ["Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinks and Text Markup Language", "Hyperlink Tool Machine Language"],
+        correct: "Hyper Text Markup Language"
+      },
+      {
+        question: "Which tag is used for inserting images?",
+        options: ["<img>", "<image>", "<src>", "<pic>"],
+        correct: "<img>"
+      },
+      {
+        question: "What tag is used to create links?",
+        options: ["<a>", "<link>", "<href>", "<url>"],
+        correct: "<a>"
       }
-    })
-    .catch(err => {
-      loginButton.disabled = false;
-      loginButton.innerText = "Login";
-      document.getElementById("loginError").innerText = "⚠️ Network error. Try again.";
-    });
-  }
+    ],
+    "CSS": [
+      {
+        question: "What does CSS stand for?",
+        options: ["Creative Style Sheets", "Cascading Style Sheets", "Computer Style Sheets", "Colorful Style Sheets"],
+        correct: "Cascading Style Sheets"
+      },
+      {
+        question: "How do you change text color in CSS?",
+        options: ["color:", "text-color:", "font-color:", "textStyle:"],
+        correct: "color:"
+      },
+      {
+        question: "What CSS property sets background color?",
+        options: ["bgcolor", "backgroundColor", "background-color", "color-background"],
+        correct: "background-color"
+      }
+    ]
+  };
 
   function loadQuestions() {
     const subject = document.getElementById("subject").value;
@@ -315,39 +282,44 @@
 
     localStorage.setItem("selectedSubject", subject);
 
-    let questions = JSON.parse(localStorage.getItem(`shuffled_${subject}`));
-    if (!questions) {
-      questions = shuffle([...questionBank[subject]]);
-      localStorage.setItem(`shuffled_${subject}`, JSON.stringify(questions));
-    }
+    const questions = questionBank[subject];
 
-    const savedAnswers = JSON.parse(localStorage.getItem(`answers_${subject}`)) || [];
-
-    questions.forEach((q, i) => {
-      const answer = sanitize(savedAnswers[i] || "");
+    questions.forEach((qObj, i) => {
+      const saved = localStorage.getItem(`q${i+1}`) || "";
       const div = document.createElement("div");
       div.className = "question";
-      div.innerHTML = `<label>Q${i + 1}: ${sanitize(q)}</label>
-        <input type="text" id="q${i + 1}" value="${answer}" placeholder="Your answer...">`;
+
+      let optionsHTML = "";
+      qObj.options.forEach(opt => {
+        const checked = saved === opt ? "checked" : "";
+        optionsHTML += `<div><label><input type="radio" name="q${i+1}" value="${opt}" ${checked}/> ${opt}</label></div>`;
+      });
+
+      div.innerHTML = `<label>Q${i+1}: ${sanitize(qObj.question)}</label>${optionsHTML}`;
       questionsDiv.appendChild(div);
     });
   }
 
   function autoSaveAnswers() {
     const subject = document.getElementById("subject").value;
-    if (!subject) return;
-
-    const questions = JSON.parse(localStorage.getItem(`shuffled_${subject}`)) || [];
-    const answers = questions.map((q, i) => {
-      const input = document.getElementById(`q${i + 1}`);
-      return input ? input.value.trim() : "";
+    const questions = questionBank[subject];
+    questions.forEach((qObj, i) => {
+      const selected = document.querySelector(`input[name="q${i+1}"]:checked`);
+      if (selected) {
+        localStorage.setItem(`q${i+1}`, selected.value);
+      }
     });
-
-    localStorage.setItem(`answers_${subject}`, JSON.stringify(answers));
   }
 
   function startTimer() {
-    endTime = parseInt(localStorage.getItem('examEndTime'));
+    const savedEnd = localStorage.getItem("examEndTime");
+    if (!savedEnd) {
+      endTime = Date.now() + 3600000;
+      localStorage.setItem("examEndTime", endTime);
+    } else {
+      endTime = parseInt(savedEnd);
+    }
+
     updateTimer();
 
     timerInterval = setInterval(() => {
@@ -358,9 +330,6 @@
         clearInterval(timerInterval);
         submitExam(true);
       } else {
-        if (Math.floor(remaining / 1000) === 300) {
-          alert("⚠️ Only 5 minutes left!");
-        }
         updateTimer();
       }
     }, 1000);
@@ -381,12 +350,15 @@
 
     if (!auto && !confirm("Are you sure you want to submit your exam?")) return;
 
-    const answers = [];
-    const questions = JSON.parse(localStorage.getItem(`shuffled_${subject}`)) || [];
+    const questions = questionBank[subject];
+    let answers = [];
+    let score = 0;
 
-    questions.forEach((q, i) => {
-      const input = document.getElementById(`q${i + 1}`);
-      answers.push(sanitize(input?.value || "Not Answered"));
+    questions.forEach((qObj, i) => {
+      const selected = document.querySelector(`input[name="q${i+1}"]:checked`);
+      const ans = selected ? selected.value : "Not Answered";
+      answers.push(ans);
+      if (ans === qObj.correct) score++;
     });
 
     const submitButton = document.querySelector("button[onclick='submitExam()']");
@@ -400,7 +372,9 @@
         name: student.name,
         email: student.email,
         subject: subject,
-        answers: JSON.stringify(answers)
+        answers: JSON.stringify(answers),
+        score: score,
+        total: questions.length
       })
     })
     .then(res => res.json())
@@ -410,67 +384,88 @@
 
       if (data.success) {
         clearInterval(timerInterval);
-        localStorage.removeItem('examEndTime');
-        localStorage.removeItem('selectedSubject');
-        localStorage.removeItem(`answers_${subject}`);
-        localStorage.removeItem(`shuffled_${subject}`);
+        localStorage.clear();
         document.getElementById("examContainer").style.display = "none";
         document.getElementById("topbar").style.display = "none";
         document.getElementById("thankYouScreen").style.display = "block";
         document.getElementById("submittedStudentName").innerText = student.name;
         document.getElementById("submittedSubject").innerText = subject;
+        document.getElementById("submittedScore").innerText = `${score} / ${questions.length}`;
       } else {
         alert("❌ Submission failed. Try again.");
       }
     })
     .catch(err => {
+      console.error("Submission error", err);
       submitButton.disabled = false;
       submitButton.innerText = "Submit Exam";
       alert("⚠️ Network error. Try again.");
     });
   }
 
-  function restoreSubject() {
-    const savedSubject = localStorage.getItem("selectedSubject");
-    if (savedSubject) {
-      document.getElementById("subject").value = savedSubject;
-      loadQuestions();
-    }
-  }
-
   function logout() {
-    if (confirm("Do you really want to logout?")) {
+    if (confirm("Logout?")) {
       clearInterval(timerInterval);
-      localStorage.removeItem('student');
-      localStorage.removeItem('examEndTime');
-      const subject = localStorage.getItem("selectedSubject");
-      if (subject) {
-        localStorage.removeItem(`answers_${subject}`);
-        localStorage.removeItem(`shuffled_${subject}`);
-        localStorage.removeItem('selectedSubject');
-      }
+      localStorage.clear();
       location.reload();
     }
   }
 
   window.onload = () => {
-    const savedStudent = localStorage.getItem('student');
-    const savedEnd = localStorage.getItem('examEndTime');
-    if (savedStudent && savedEnd) {
-      if (confirm("Resume your previous session?")) {
-        student = JSON.parse(savedStudent);
+    const saved = localStorage.getItem('student');
+    if (saved) {
+      if (confirm("Resume previous session?")) {
+        student = JSON.parse(saved);
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("examContainer").style.display = "block";
         document.getElementById("topbar").style.display = "flex";
         document.getElementById("studentName").innerText = student.name;
         document.getElementById("profileImage").src = student.photo || "default-profile.png";
-        restoreSubject();
+        document.getElementById("subject").value = localStorage.getItem("selectedSubject") || "";
+        loadQuestions();
         startTimer();
       } else {
         localStorage.clear();
       }
     }
   };
+
+  function login() {
+    const email = sanitize(document.getElementById("email").value.trim());
+    const password = sanitize(document.getElementById("password").value.trim());
+    const loginButton = document.querySelector("button[type='submit']");
+    loginButton.disabled = true;
+    loginButton.innerText = "Logging in...";
+
+    fetch(scriptURL, {
+      method: 'POST',
+      body: new URLSearchParams({ action: 'login', email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+      loginButton.disabled = false;
+      loginButton.innerText = "Login";
+
+      if (data.success) {
+        student = data;
+        localStorage.setItem('student', JSON.stringify(data));
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("examContainer").style.display = "block";
+        document.getElementById("topbar").style.display = "flex";
+        document.getElementById("studentName").innerText = data.name;
+        document.getElementById("profileImage").src = data.photo || "default-profile.png";
+        startTimer();
+      } else {
+        document.getElementById("loginError").innerText = "❌ Invalid Email or Password";
+      }
+    })
+    .catch(err => {
+      loginButton.disabled = false;
+      loginButton.innerText = "Login";
+      document.getElementById("loginError").innerText = "⚠️ Network error. Try again.";
+    });
+  }
 </script>
 </body>
 </html>
+
