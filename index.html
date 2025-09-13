@@ -220,17 +220,18 @@
         document.getElementById("examContainer").style.display = "block";
         document.getElementById("topbar").style.display = "flex";
         document.getElementById("studentName").innerText = data.name;
-        let photoURL = data.photo || "";  // fallback to empty if null
 
-// Optional: Convert Google Drive view link to direct link
-if (photoURL.includes("drive.google.com") && photoURL.includes("/file/d/")) {
-  const match = photoURL.match(/\/d\/(.*?)\//);
-  if (match && match[1]) {
-    photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-  }
-}
+        let photoURL = data.photo || "";
 
-document.getElementById("profileImage").src = photoURL;
+        // Google Drive link ko direct image link me convert karo
+        if (photoURL.includes("drive.google.com") && photoURL.includes("/file/d/")) {
+          const match = photoURL.match(/\/d\/([^\/]+)/);
+          if (match && match[1]) {
+            photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+          }
+        }
+
+        document.getElementById("profileImage").src = photoURL;
 
         restoreSubject();
         startTimer();
@@ -401,7 +402,16 @@ document.getElementById("profileImage").src = photoURL;
         document.getElementById("examContainer").style.display = "block";
         document.getElementById("topbar").style.display = "flex";
         document.getElementById("studentName").innerText = student.name;
-        document.getElementById("profileImage").src = student.photo;
+
+        let photoURL = student.photo || "";
+        if (photoURL.includes("drive.google.com") && photoURL.includes("/file/d/")) {
+          const match = photoURL.match(/\/d\/([^\/]+)/);
+          if (match && match[1]) {
+            photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+          }
+        }
+        document.getElementById("profileImage").src = photoURL;
+
         restoreSubject();
         startTimer();
       } else {
@@ -413,4 +423,3 @@ document.getElementById("profileImage").src = photoURL;
 
 </body>
 </html>
-
