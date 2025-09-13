@@ -1,3 +1,5 @@
+<!-- 💡 Same DOCTYPE, head, styles — your code untouched except added features -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,7 +61,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
-    label, select, input[type="text"], input[type="email"], input[type="password"] {
+    label, select, input[type="text"], input[type="email"], input[type="password"], textarea {
       display: block;
       margin: 12px 0;
       width: 100%;
@@ -92,16 +94,34 @@
 
     .timer {
       font-weight: bold;
-      color: red;
       text-align: center;
       margin-top: 20px;
       font-size: 18px;
+    }
+
+    .timer.warning {
+      color: orange;
+    }
+
+    .timer.critical {
+      color: red;
     }
 
     #loginError {
       color: red;
       font-weight: bold;
       margin-top: 10px;
+    }
+
+    .password-toggle {
+      position: relative;
+    }
+
+    .password-toggle span {
+      position: absolute;
+      right: 20px;
+      top: 38px;
+      cursor: pointer;
     }
 
     @media screen and (max-width: 600px) {
@@ -155,7 +175,12 @@
     <h2>🔐 Student Login</h2>
     <form onsubmit="event.preventDefault(); login();">
       <input type="email" id="email" placeholder="Enter Email" required>
-      <input type="password" id="password" placeholder="Enter Password" required>
+
+      <div class="password-toggle">
+        <input type="password" id="password" placeholder="Enter Password" required>
+        <span onclick="togglePassword()">👁️</span>
+      </div>
+
       <button type="submit">Login</button>
       <div id="loginError"></div>
     </form>
@@ -187,8 +212,13 @@
 
   function sanitize(input) {
     const div = document.createElement('div');
-    div.textContent = input; // safer
+    div.textContent = input;
     return div.innerHTML.trim();
+  }
+
+  function togglePassword() {
+    const pass = document.getElementById("password");
+    pass.type = pass.type === "password" ? "text" : "password";
   }
 
   function login() {
@@ -222,20 +252,16 @@
         document.getElementById("studentName").innerText = data.name;
 
         let photoURL = data.photo || "";
-
         if (photoURL.startsWith("https://drive.google.com/file/d/")) {
           const match = photoURL.match(/\/d\/([^\/]+)/);
           if (match && match[1]) {
             photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
           }
-        } else if (photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
-          // No change needed
-        } else {
+        } else if (!photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
           photoURL = "default-profile.png";
         }
 
         document.getElementById("profileImage").src = photoURL;
-
         restoreSubject();
         startTimer();
       } else {
@@ -276,6 +302,7 @@
     if (!subject || !questionBank[subject]) return;
 
     localStorage.setItem("selectedSubject", subject);
+    document.getElementById("subject").disabled = true; // 🔒 Disable after selection
 
     const questions = questionBank[subject];
     questions.forEach((q, i) => {
@@ -284,7 +311,7 @@
       div.className = "question";
       div.innerHTML = `
         <label>Q${i+1}: ${sanitize(q)}</label>
-        <input type="text" id="q${i+1}" placeholder="Your answer..." value="${sanitize(savedAnswer)}">
+        <textarea id="q${i+1}" placeholder="Your answer...">${sanitize(savedAnswer)}</textarea>
       `;
       questionsDiv.appendChild(div);
     });
@@ -297,10 +324,7 @@
       localStorage.setItem('timeLeft', timeLeft);
       updateTimer();
 
-      if (timeLeft === 300) {
-        alert("⚠️ Only 5 minutes left!");
-      }
-
+      if (timeLeft === 300) alert("⚠️ Only 5 minutes left!");
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         submitExam(true);
@@ -313,7 +337,12 @@
   function updateTimer() {
     const min = Math.floor(timeLeft / 60);
     const sec = timeLeft % 60;
-    document.getElementById("timer").innerText = `Time Left: ${min}:${sec < 10 ? '0' : ''}${sec}`;
+    const timer = document.getElementById("timer");
+    timer.innerText = `Time Left: ${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+    if (timeLeft <= 60) timer.className = "timer critical";
+    else if (timeLeft <= 300) timer.className = "timer warning";
+    else timer.className = "timer";
   }
 
   function autoSaveAnswers() {
@@ -366,7 +395,9 @@
       if (data.success) {
         clearInterval(timerInterval);
         localStorage.clear();
-        alert(auto ? "⌛ Time's up! Exam auto-submitted." : "✅ Exam submitted successfully!");
+        alert(auto
+          ? "⌛ Time's up! Exam auto-submitted."
+          : `✅ Exam submitted successfully at ${new Date().toLocaleTimeString()}`);
         location.reload();
       } else {
         alert("❌ Submission failed. Please try again.");
@@ -397,6 +428,8 @@
   }
 
   window.onload = () => {
+    window.onbeforeunload = autoSaveAnswers;
+
     const savedStudent = localStorage.getItem('student');
     if (savedStudent) {
       if (confirm("Resume your previous session?")) {
@@ -407,20 +440,16 @@
         document.getElementById("studentName").innerText = student.name;
 
         let photoURL = student.photo || "";
-
         if (photoURL.startsWith("https://drive.google.com/file/d/")) {
           const match = photoURL.match(/\/d\/([^\/]+)/);
           if (match && match[1]) {
             photoURL = `https://drive.google.com/uc?export=view&id=${match[1]}`;
           }
-        } else if (photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
-          // No change needed
-        } else {
+        } else if (!photoURL.startsWith("https://drive.google.com/uc?export=view&id=")) {
           photoURL = "default-profile.png";
         }
 
         document.getElementById("profileImage").src = photoURL;
-
         restoreSubject();
         startTimer();
       } else {
