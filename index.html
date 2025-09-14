@@ -20,8 +20,15 @@
       z-index: 100;
     }
     #logo {
-      font-size: 20px;
+      display: flex;
+      align-items: center;
       font-weight: bold;
+      font-size: 20px;
+      color: white;
+    }
+    #logo img {
+      height: 40px;
+      margin-right: 10px;
     }
     #profile-info {
       display: flex;
@@ -35,6 +42,8 @@
       width: 40px;
       border-radius: 50%;
       margin-right: 10px;
+      object-fit: cover;
+      background: white;
     }
     .container {
       padding: 80px 20px;
@@ -59,10 +68,13 @@
 <body>
 
 <div id="top-bar" class="hidden">
-  <div id="logo">NS SIDD TUTORIAL</div>
+  <div id="logo">
+    <img src="nssiddlogo.png" alt="NS SIDD TUTORIAL Logo" />
+    NS SIDD TUTORIAL
+  </div>
   <div id="profile-info">
     <span id="student-name"></span>
-    <img id="profile-img" src="" alt="Profile">
+    <img id="profile-img" src="" alt="Profile" onerror="this.style.display='none'" />
     <span class="timer" id="exam-timer"></span>
   </div>
 </div>
@@ -89,7 +101,7 @@
 </div>
 
 <script>
-  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1MBfsjIJhnkm2iR2gibDAeCGYLJ2MUwNy6PseNT_ERvwyBDhtPZxHWlyQkjoMeXze/exec';
+  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1MBfsjIJhnkm2gibDAeCGYLJ2MUwNy6PseNT_ERvwyBDhtPZxHWlyQkjoMeXze/exec';
 
   let studentData = null;
   let examStarted = false;
@@ -109,6 +121,23 @@
     ]
   };
 
+  function fixDriveImageUrl(url) {
+    // If Google Drive sharing link detected, convert to direct image URL
+    if (url.includes("drive.google.com") && url.includes("/file/d/")) {
+      let fileId = url.match(/\/file\/d\/(.*?)\//);
+      if (!fileId) {
+        fileId = url.match(/id=([^&]+)/);
+        if (fileId) fileId = fileId[1];
+      } else {
+        fileId = fileId[1];
+      }
+      if (fileId) {
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      }
+    }
+    return url; // return as is if not drive link
+  }
+
   function handleLogin() {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -121,8 +150,11 @@
         const user = data.find(u => u.Email === email && u.Password === password);
         if (user) {
           studentData = user;
+
           document.getElementById("student-name").innerText = user["Students Name"];
-          document.getElementById("profile-img").src = user["Profile Image"];
+          // Fix Drive link if needed for profile image
+          const fixedImgUrl = fixDriveImageUrl(user["Profile Image"]);
+          document.getElementById("profile-img").src = fixedImgUrl;
           document.getElementById("welcome-name").innerText = user["Students Name"];
 
           document.getElementById("login-form").classList.add("hidden");
@@ -133,7 +165,7 @@
         } else {
           alert("Invalid email or password.");
         }
-      });
+      }).catch(() => alert("Error connecting to server."));
   }
 
   function loadQuestions() {
