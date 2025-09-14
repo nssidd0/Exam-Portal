@@ -4,19 +4,19 @@
   <title>NS SIDD TUTORIAL</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Font import */
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
+    /* Basic reset and font */
     body {
-      font-family: 'Poppins', Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      background: #f5f7fa;
       color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-
-    /* Top bar */
+    /* Top Bar */
     #top-bar {
-      background: linear-gradient(90deg, #2c5364, #203a43, #0f2027);
+      background: linear-gradient(90deg, #4b6cb7, #182848);
       color: white;
       padding: 12px 20px;
       display: flex;
@@ -25,35 +25,29 @@
       position: fixed;
       width: 100%;
       top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
       font-weight: 600;
-      transition: background 0.3s ease;
     }
     #logo {
       display: flex;
       align-items: center;
       font-size: 22px;
-      gap: 10px;
+      letter-spacing: 1.2px;
     }
     #logo img {
-      height: 44px;
-      width: 44px;
-      object-fit: cover;
-      border-radius: 8px;
-      background: white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      height: 42px;
+      margin-right: 14px;
+      filter: drop-shadow(0 0 3px rgba(255,255,255,0.8));
     }
     #profile-info {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
+      font-size: 16px;
     }
     #student-name {
-      font-size: 18px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-weight: 700;
     }
     #profile-img {
       height: 44px;
@@ -61,177 +55,205 @@
       border-radius: 50%;
       object-fit: cover;
       background: white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease;
-    }
-    #profile-img:hover {
-      transform: scale(1.1);
+      border: 2px solid white;
+      box-shadow: 0 0 6px rgba(0,0,0,0.2);
     }
     .timer {
-      font-size: 18px;
       font-weight: 700;
-      color: #ffd700;
-      background: rgba(255, 215, 0, 0.15);
-      padding: 6px 14px;
-      border-radius: 25px;
-      box-shadow: 0 0 10px rgba(255,215,0,0.5);
+      color: #ffec3d;
+      background: rgba(0,0,0,0.3);
+      padding: 4px 10px;
+      border-radius: 20px;
       font-family: 'Courier New', Courier, monospace;
+      user-select: none;
     }
-
+    /* Container */
     .container {
-      padding: 100px 20px 40px; /* slightly more top to clear fixed top-bar */
-      max-width: 600px;
-      margin: 0 auto;
+      margin-top: 70px;
+      flex-grow: 1;
+      padding: 30px 24px;
+      max-width: 700px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+      margin-left: auto;
+      margin-right: auto;
     }
-
     h2 {
+      margin-bottom: 22px;
+      color: #34495e;
       text-align: center;
-      color: #203a43;
       font-weight: 700;
-      margin-bottom: 30px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 3px #d1d9e6;
     }
-
-    input[type="email"], input[type="password"], select, button {
-      padding: 12px 14px;
-      margin: 12px 0;
+    /* Forms & inputs */
+    input[type="email"],
+    input[type="password"],
+    select {
       width: 100%;
+      padding: 12px 15px;
+      margin: 12px 0 20px 0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
       font-size: 16px;
-      border: 1.5px solid #ccc;
-      border-radius: 8px;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+      outline-offset: 2px;
     }
-    input[type="email"]:focus, input[type="password"]:focus, select:focus {
-      border-color: #2c5364;
-      box-shadow: 0 0 8px rgba(44,83,100,0.4);
-      outline: none;
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+      border-color: #4b6cb7;
+      box-shadow: 0 0 8px rgba(75,108,183,0.4);
     }
+    /* Buttons */
     button {
-      background: #2c5364;
-      color: white;
+      background: linear-gradient(90deg, #4b6cb7, #182848);
       border: none;
-      border-radius: 8px;
+      color: white;
+      font-weight: 700;
+      padding: 14px;
+      width: 100%;
+      border-radius: 10px;
       cursor: pointer;
-      font-weight: 600;
-      font-size: 17px;
-      padding: 12px;
-      box-shadow: 0 5px 15px rgba(44,83,100,0.3);
-      transition: background 0.3s ease, box-shadow 0.3s ease;
+      font-size: 18px;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 12px rgba(75,108,183,0.5);
     }
     button:hover:not(:disabled) {
-      background: #1f3b50;
-      box-shadow: 0 8px 20px rgba(31,59,80,0.4);
+      background: linear-gradient(90deg, #182848, #4b6cb7);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(24,40,72,0.7);
     }
     button:disabled {
       background: #aaa;
       cursor: not-allowed;
       box-shadow: none;
+      transform: none;
     }
-
+    /* Question block */
     .question-block {
-      margin-bottom: 30px;
-      background: white;
-      padding: 18px 22px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .question-block:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      margin-bottom: 28px;
+      background: #f0f4ff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: inset 0 0 6px #d7e0ff;
+      transition: background-color 0.3s ease;
     }
     .question-block p {
-      margin-bottom: 10px;
       font-weight: 600;
-      color: #203a43;
+      font-size: 17px;
+      color: #2c3e50;
+      margin-bottom: 10px;
     }
-
+    .question-block select {
+      margin-top: 6px;
+      border: 1.5px solid #4b6cb7;
+      background: white;
+      border-radius: 6px;
+    }
+    /* Feedback box */
     .feedback {
-      margin-top: 25px;
-      padding: 16px 22px;
+      margin-top: 30px;
+      padding: 20px;
       border-radius: 12px;
-      background-color: #f7f9fc;
-      border: 1.5px solid #2c5364;
-      box-shadow: 0 4px 12px rgba(44,83,100,0.1);
+      background: #f7f9fc;
+      border: 1.5px solid #4b6cb7;
+      font-size: 16px;
+      color: #34495e;
+      max-height: 300px;
+      overflow-y: auto;
+      user-select: text;
+    }
+    .feedback h3 {
+      margin-top: 0;
+      text-align: center;
+      font-weight: 700;
+      color: #182848;
     }
     .feedback p {
       margin: 8px 0;
     }
-    .feedback .correct {
-      color: green;
-      font-weight: 600;
+    .correct {
+      color: #27ae60;
+      font-weight: 700;
     }
-    .feedback .wrong {
-      color: red;
-      font-weight: 600;
+    .wrong {
+      color: #e74c3c;
+      font-weight: 700;
     }
-
-    /* Media query for mobile */
-    @media (max-width: 600px) {
+    /* Responsive */
+    @media (max-width: 700px) {
       .container {
-        padding: 120px 15px 30px;
+        margin: 90px 12px 30px;
+        padding: 20px 16px;
+      }
+      button {
+        font-size: 16px;
+        padding: 12px;
+      }
+      #top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 14px;
+      }
+      #profile-info {
+        margin-top: 8px;
+        gap: 8px;
+        font-size: 14px;
       }
       #logo {
         font-size: 18px;
       }
-      #student-name {
-        font-size: 16px;
-      }
-      .timer {
-        font-size: 16px;
-        padding: 5px 10px;
-      }
-      input[type="email"], input[type="password"], select, button {
-        font-size: 15px;
-        padding: 10px 12px;
-      }
-      .question-block {
-        padding: 15px 18px;
-        margin-bottom: 25px;
-      }
+    }
+    /* Hidden class */
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 <body>
 
-<div id="top-bar" class="hidden">
-  <div id="logo">
-    <img src="nssiddlogo.png" alt="Logo"/>
-    NS SIDD TUTORIAL
-  </div>
-  <div id="profile-info">
-    <span id="student-name"></span>
-    <img id="profile-img" src="" alt="Profile" onerror="this.style.display='none'" />
-    <span class="timer" id="exam-timer"></span>
-  </div>
-</div>
-
-<div class="container">
-  <div id="login-form">
-    <h2>Student Login</h2>
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button onclick="handleLogin()">Login</button>
-  </div>
-
-  <div id="exam-section" class="hidden">
-    <h2>Welcome, <span id="welcome-name"></span></h2>
-    <label for="subject-select">Select Subject:</label>
-    <select id="subject-select">
-      <option value="">-- Choose Subject --</option>
-      <option value="Graphic Designing">Graphic Designing</option>
-      <option value="Basic Computer">Basic Computer</option>
-    </select>
-    <div id="start-exam-block" class="hidden">
-      <button onclick="startExam()">Start Exam</button>
+  <div id="top-bar" class="hidden">
+    <div id="logo">
+      <img src="nssiddlogo.png" alt="Logo" />
+      NS SIDD TUTORIAL
     </div>
-    <div id="questions-container" class="hidden"></div>
-    <button id="manual-submit-btn" class="hidden" onclick="confirmSubmit()">Submit</button>
-    <div id="feedback-box" class="feedback hidden"></div>
+    <div id="profile-info">
+      <span id="student-name"></span>
+      <img id="profile-img" src="" alt="Profile" onerror="this.style.display='none'" />
+      <span class="timer" id="exam-timer"></span>
+    </div>
   </div>
-</div>
+
+  <div class="container">
+    <div id="login-form">
+      <h2>Student Login</h2>
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button onclick="handleLogin()">Login</button>
+    </div>
+
+    <div id="exam-section" class="hidden">
+      <h2>Welcome, <span id="welcome-name"></span></h2>
+      <label for="subject-select" style="font-weight:600; color:#182848;">Select Subject:</label>
+      <select id="subject-select" aria-label="Select Subject">
+        <option value="">-- Choose Subject --</option>
+        <option value="Graphic Designing">Graphic Designing</option>
+        <option value="Basic Computer">Basic Computer</option>
+      </select>
+      <div id="start-exam-block" class="hidden" style="margin-top: 15px;">
+        <button onclick="startExam()">Start Exam</button>
+      </div>
+      <div id="questions-container" class="hidden"></div>
+      <button id="manual-submit-btn" class="hidden" onclick="confirmSubmit()" style="margin-top: 25px;">Submit</button>
+      <div id="feedback-box" class="feedback hidden"></div>
+    </div>
+  </div>
 
 <script>
-  // Your existing JS code unchanged below
   const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1MBfsjIJhnkm2iR2gibDAeCGYLJ2MUwNy6PseNT_ERvwyBDhtPZxHWlyQkjoMeXze/exec';
 
   let studentData = null;
@@ -320,7 +342,7 @@
       return;
     }
 
-    questionList = JSON.parse(JSON.stringify(questionBank[subject])); // deep copy
+    questionList = JSON.parse(JSON.stringify(questionBank[subject]));
     shuffleArray(questionList);
     questionList.forEach(q => shuffleArray(q.options));
 
@@ -346,7 +368,7 @@
       const block = document.createElement("div");
       block.className = "question-block";
       block.innerHTML = `
-        <p><strong>Q${idx + 1}: ${item.q}</strong></p>
+        <p><strong>Q${idx + 1}:</strong> ${item.q}</p>
         <select id="q-${idx}">
           <option value="">-- Select Answer --</option>
           ${item.options.map(opt => `<option value="${opt}">${opt}</option>`).join("")}
@@ -409,7 +431,7 @@
       email: studentData.Email,
       subject: document.getElementById("subject-select").value,
       answers: answersArr.join(", "),
-      correctAnswers: correctArr.join(", "), 
+      correctAnswers: correctArr.join(", "),
       score: `${score}/${questionList.length}`
     };
 
@@ -442,13 +464,15 @@
     let exitTimer = 10;
     const countdownEl = document.createElement('p');
     countdownEl.id = "exit-timer";
+    countdownEl.style.marginTop = '15px';
+    countdownEl.style.fontWeight = '600';
     fb.appendChild(countdownEl);
 
-    const innerTimer = setInterval(() => {
+    const timerInterval = setInterval(() => {
       countdownEl.innerHTML = `🔁 Returning to login in <strong>${exitTimer}</strong> seconds...`;
       exitTimer--;
       if (exitTimer < 0) {
-        clearInterval(innerTimer);
+        clearInterval(timerInterval);
         location.reload();
       }
     }, 1000);
