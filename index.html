@@ -288,14 +288,15 @@
   });
 
   const payload = {
-    action: 'submit',
-    name: studentData["Students Name"],
-    email: studentData.Email,
-    subject: document.getElementById("subject-select").value,
-    answers: answersArr.join(", "),
-    correctAnswers: correctArr.join(", "),
-    score: `${score}/${questionList.length}`
-  };
+  action: 'submit',
+  name: studentData["Students Name"],
+  email: studentData.Email,
+  subject: document.getElementById("subject-select").value,
+  answers: answersArr.join(", "),
+  correctAnswers: correctArr.join(", "), // ✅ This must be here
+  score: `${score}/${questionList.length}`
+};
+
 
   fetch(SHEET_API_URL, {
     method: 'POST',
@@ -356,6 +357,7 @@
 
 </body>
 </html>
+
 
 
 
