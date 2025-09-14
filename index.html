@@ -2,22 +2,12 @@
 <html>
 <head>
   <title>NS SIDD TUTORIAL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
     }
-    @media (max-width: 600px) {
-  #top-bar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  #profile-info {
-    margin-top: 10px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
     #top-bar {
       background-color: #333;
       color: white;
@@ -69,8 +59,17 @@
       font-size: 16px;
     }
     .question-block {
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
+    .question-block select {
+  margin-top: 5px;
+}
+    input, select, button {
+  font-size: 16px; /* Avoid zooming on tap in iOS Safari */
+}
+    .question-block p {
+  word-wrap: break-word;
+}
     .timer {
       font-weight: bold;
       color: yellow;
@@ -81,6 +80,44 @@
       border: 1px solid #ccc;
       background-color: #f9f9f9;
     }
+    .feedback p {
+  margin: 5px 0;
+}
+.feedback .correct {
+  color: green;
+}
+.feedback .wrong {
+  color: red;
+}
+    /* ✅ Media query at the end */
+  @media (max-width: 600px) {
+    .container {
+    padding: 100px 10px 20px;
+  }
+    select, input, button {
+    font-size: 14px;
+    padding: 8px;
+    }
+    #top-bar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    #profile-info {
+      margin-top: 10px;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    #student-name {
+      margin-bottom: 5px;
+    }
+
+    #profile-img {
+      margin-right: 0;
+      margin-bottom: 5px;
+    }
+  }
   </style>
 </head>
 <body>
@@ -333,7 +370,7 @@
     const userAns = answersArr[idx];
     const correct = correctAnswersMap[`q-${idx}`];
     const ok = (userAns === correct);
-    fb.innerHTML += `<p>Q${idx + 1}: Your answer: <strong>${userAns}</strong>. Correct answer: <strong>${correct}</strong>. ${ok ? "✅" : "❌"}</p>`;
+    fb.innerHTML += `<p class="${ok ? 'correct' : 'wrong'}">Q${idx + 1}: Your answer: <strong>${userAns}</strong>. Correct answer: <strong>${correct}</strong>. ${ok ? "✅" : "❌"}</p>`;
   });
 
   // Countdown before exit
@@ -368,6 +405,7 @@
 
 </body>
 </html>
+
 
 
 
