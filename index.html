@@ -15,6 +15,21 @@
       flex-direction: column;
     }
     /* Top Bar */
+    #login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+#login-header img {
+  height: 60px;
+  margin-bottom: 10px;
+}
+#login-header h1 {
+  font-size: 26px;
+  color: #182848;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
     #top-bar {
       background: linear-gradient(90deg, #4b6cb7, #182848);
       color: white;
@@ -66,54 +81,10 @@
       border-radius: 20px;
       font-family: 'Courier New', Courier, monospace;
       user-select: none;
-      position: relative;
-      width: 90px;
-      text-align: center;
-      overflow: hidden;
-    }
-    .timer-wave {
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 200%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent 0%, #ffec3d 50%, transparent 100%);
-      animation: wave 2s linear infinite;
-      opacity: 0.6;
-      pointer-events: none;
-      border-radius: 20px;
-      z-index: 1;
-    }
-    .timer-text {
-      position: relative;
-      z-index: 2;
-    }
-    @keyframes wave {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-    /* Centered login header with logo */
-    #login-header {
-      text-align: center;
-      margin: 120px 0 40px;
-      user-select: none;
-    }
-    #login-header img {
-      height: 80px;
-      margin-bottom: 12px;
-      filter: drop-shadow(0 0 6px rgba(75,108,183,0.8));
-    }
-    #login-header h1 {
-      font-size: 28px;
-      letter-spacing: 2px;
-      color: #4b6cb7;
-      text-shadow: 1px 1px 3px #d1d9e6;
-      margin: 0;
-      font-weight: 700;
     }
     /* Container */
     .container {
-      margin-top: 20px;
+      margin-top: 70px;
       flex-grow: 1;
       padding: 30px 24px;
       max-width: 700px;
@@ -221,8 +192,8 @@
       margin: 8px 0;
     }
     #feedback-screen {
-      /* added dynamically by JS */
-    }
+  /* added dynamically by JS */
+}
     .correct {
       color: #27ae60;
       font-weight: 700;
@@ -254,15 +225,6 @@
       #logo {
         font-size: 18px;
       }
-      #login-header {
-        margin: 90px 12px 30px;
-      }
-      #login-header img {
-        height: 60px;
-      }
-      #login-header h1 {
-        font-size: 22px;
-      }
     }
     /* Hidden class */
     .hidden {
@@ -280,20 +242,11 @@
     <div id="profile-info">
       <span id="student-name"></span>
       <img id="profile-img" src="" alt="Profile" onerror="this.style.display='none'" />
-      <div class="timer">
-        <div class="timer-wave"></div>
-        <span class="timer-text" id="exam-timer">00:00</span>
-      </div>
+      <span class="timer" id="exam-timer"></span>
     </div>
   </div>
 
   <div class="container">
-    <!-- Login header with centered logo and name -->
-    <div id="login-header" class="">
-      <img src="nssiddlogo.png" alt="Logo" />
-      <h1>NS SIDD TUTORIAL</h1>
-    </div>
-
     <div id="login-form">
       <h2>Student Login</h2>
       <input type="email" id="email" placeholder="Email" required />
@@ -317,6 +270,7 @@
       <div id="feedback-box" class="feedback hidden"></div>
     </div>
   </div>
+
 <script>
   const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1MBfsjIJhnkm2iR2gibDAeCGYLJ2MUwNy6PseNT_ERvwyBDhtPZxHWlyQkjoMeXze/exec';
 
@@ -325,156 +279,269 @@
   let timerInterval;
   let remainingTime = 60 * 60; // 1 hour in seconds
   let questionList = [];
+  let selectedAnswers = [];
   let correctAnswersMap = {};
 
   const questionBank = {
     "Graphic Designing": [
       { q: "What is Photoshop?", options: ["Software", "Tool", "Game"], correct: "Software" },
       { q: "Which format supports transparency?", options: ["JPG", "PNG", "BMP"], correct: "PNG" },
-      { q: "Which color mode is used for printing?", options: ["RGB", "CMYK", "HSV"], correct: "CMYK" }
+      { q: "Which color mode is used for print?", options: ["RGB", "CMYK", "HEX"], correct: "CMYK" }
     ],
     "Basic Computer": [
-      { q: "What does CPU stand for?", options: ["Central Processing Unit", "Computer Personal Unit", "Central Print Unit"], correct: "Central Processing Unit" },
-      { q: "Which device stores data?", options: ["Monitor", "Hard Disk", "Printer"], correct: "Hard Disk" },
-      { q: "What is the shortcut for copy?", options: ["Ctrl+V", "Ctrl+C", "Ctrl+X"], correct: "Ctrl+C" }
+      { q: "What is CPU?", options: ["Monitor", "Processor", "Keyboard"], correct: "Processor" },
+      { q: "Full form of RAM?", options: ["Random Access Memory", "Read Access Mode", "Run Access Memory"], correct: "Random Access Memory" },
+      { q: "Operating system example?", options: ["Windows", "Excel", "Photoshop"], correct: "Windows" }
     ]
   };
 
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function fixDriveImageUrl(url) {
+    if (!url) return '';
+    if (url.includes("drive.google.com") && url.includes("/file/d/")) {
+      let fileId = url.match(/\/file\/d\/(.*?)\//);
+      if (!fileId) {
+        fileId = url.match(/id=([^&]+)/);
+        if (fileId) fileId = fileId[1];
+      } else {
+        fileId = fileId[1];
+      }
+      if (fileId) {
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      }
+    }
+    return url;
+  }
+
   function handleLogin() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
     if (!email || !password) {
-      alert('Please enter email and password.');
+      alert("Please enter both Email and Password");
       return;
     }
 
-    // For demo, allow any login; in real case, verify from server or Google Sheet
-    // Simulate fetching user data
-    studentData = {
-      email,
-      name: email.split('@')[0],
-      profileImg: 'profile-placeholder.png'
-    };
+    fetch(`${SHEET_API_URL}?action=login`)
+      .then(res => res.json())
+      .then(data => {
+        const user = data.find(u => u.Email === email && u.Password === password);
+        if (user) {
+          studentData = user;
+          document.getElementById("student-name").innerText = user["Students Name"];
+          const fixedImg = fixDriveImageUrl(user["Profile Image"]);
+          document.getElementById("profile-img").src = fixedImg;
+          document.getElementById("welcome-name").innerText = user["Students Name"];
 
-    // Hide login form, show top bar and exam section
-    document.getElementById('login-form').classList.add('hidden');
-    document.getElementById('login-header').classList.add('hidden');
-    document.getElementById('top-bar').classList.remove('hidden');
-    document.getElementById('exam-section').classList.remove('hidden');
-
-    document.getElementById('student-name').textContent = studentData.name;
-    document.getElementById('profile-img').src = studentData.profileImg;
-    document.getElementById('welcome-name').textContent = studentData.name;
+          document.getElementById("login-form").classList.add("hidden");
+          document.getElementById("exam-section").classList.remove("hidden");
+          document.getElementById("top-bar").classList.remove("hidden");
+        } else {
+          alert("Invalid email or password.");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error connecting to server.");
+      });
   }
-
-  const subjectSelect = document.getElementById('subject-select');
-  const startExamBlock = document.getElementById('start-exam-block');
-  const questionsContainer = document.getElementById('questions-container');
-  const manualSubmitBtn = document.getElementById('manual-submit-btn');
-  const feedbackBox = document.getElementById('feedback-box');
-  const examTimer = document.getElementById('exam-timer');
-
-  subjectSelect.addEventListener('change', () => {
-    if(subjectSelect.value) {
-      startExamBlock.classList.remove('hidden');
-    } else {
-      startExamBlock.classList.add('hidden');
-      questionsContainer.classList.add('hidden');
-      manualSubmitBtn.classList.add('hidden');
-      feedbackBox.classList.add('hidden');
-    }
-  });
 
   function startExam() {
-    if(!subjectSelect.value) {
-      alert('Please select a subject to start the exam.');
+    const subject = document.getElementById("subject-select").value;
+    if (!subject) {
+      alert("Please select subject!");
       return;
     }
-    examStarted = true;
-    remainingTime = 60 * 60; // reset timer to 1 hour
-    startExamBlock.classList.add('hidden');
-    questionsContainer.classList.remove('hidden');
-    manualSubmitBtn.classList.remove('hidden');
-    feedbackBox.classList.add('hidden');
-    renderQuestions(subjectSelect.value);
+
+    questionList = JSON.parse(JSON.stringify(questionBank[subject]));
+    shuffleArray(questionList);
+    questionList.forEach(q => shuffleArray(q.options));
+
+    correctAnswersMap = {};
+    questionList.forEach((q, idx) => {
+      correctAnswersMap[`q-${idx}`] = q.correct;
+    });
+
+    document.getElementById("subject-select").disabled = true;
+    document.getElementById("start-exam-block").classList.add("hidden");
+    document.getElementById("questions-container").classList.remove("hidden");
+    document.getElementById("manual-submit-btn").classList.remove("hidden");
+
+    renderQuestions();
     startTimer();
+    examStarted = true;
   }
 
-  function renderQuestions(subject) {
-    questionList = questionBank[subject] || [];
-    correctAnswersMap = {};
-    questionsContainer.innerHTML = '';
-    questionList.forEach((item, index) => {
-      const block = document.createElement('div');
-      block.className = 'question-block';
+  function renderQuestions() {
+    const container = document.getElementById("questions-container");
+    container.innerHTML = "";
+    questionList.forEach((item, idx) => {
+      const block = document.createElement("div");
+      block.className = "question-block";
       block.innerHTML = `
-        <p><strong>Q${index + 1}:</strong> ${item.q}</p>
-        <select aria-label="Answer for question ${index + 1}" data-qindex="${index}">
+        <p><strong>Q${idx + 1}:</strong> ${item.q}</p>
+        <select id="q-${idx}">
           <option value="">-- Select Answer --</option>
-          ${item.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+          ${item.options.map(opt => `<option value="${opt}">${opt}</option>`).join("")}
         </select>
       `;
-      questionsContainer.appendChild(block);
-      correctAnswersMap[index] = item.correct;
+      container.appendChild(block);
     });
   }
 
   function startTimer() {
-    updateTimerDisplay();
+    remainingTime = 60 * 60;
     timerInterval = setInterval(() => {
       remainingTime--;
-      if(remainingTime <= 0) {
+      const minutes = Math.floor(remainingTime / 60);
+      const seconds = remainingTime % 60;
+      document.getElementById("exam-timer").innerText = `⏳ ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+      if (remainingTime === 300) {
+        alert("⚠️ Only 5 minutes left!");
+      }
+      if (remainingTime <= 0) {
         clearInterval(timerInterval);
-        alert("Time's up! Your exam will be submitted automatically.");
+        alert("⏰ Time's up! Auto-submitting your exam.");
         submitExam();
       }
-      updateTimerDisplay();
     }, 1000);
   }
 
-  function updateTimerDisplay() {
-    const mins = Math.floor(remainingTime / 60).toString().padStart(2, '0');
-    const secs = (remainingTime % 60).toString().padStart(2, '0');
-    examTimer.textContent = `${mins}:${secs}`;
-  }
-
   function confirmSubmit() {
-    if(confirm("Are you sure you want to submit your exam?")) {
+    if (!examStarted) return;
+    const ok = confirm("Are you sure you want to submit your exam now?");
+    if (ok) {
       submitExam();
     }
   }
 
   function submitExam() {
-    clearInterval(timerInterval);
-    examStarted = false;
-    manualSubmitBtn.disabled = true;
+    if (!examStarted) return;
 
-    const selects = questionsContainer.querySelectorAll('select');
-    let score = 0;
-    let total = selects.length;
-    let resultHtml = '<h3>Exam Results</h3>';
-
-    selects.forEach(select => {
-      const qIndex = parseInt(select.getAttribute('data-qindex'), 10);
-      const userAnswer = select.value;
-      const correctAnswer = correctAnswersMap[qIndex];
-      if(userAnswer === correctAnswer) {
-        score++;
-        resultHtml += `<p>Q${qIndex + 1}: <span class="correct">Correct</span> (Your answer: ${userAnswer})</p>`;
-      } else if(userAnswer === '') {
-        resultHtml += `<p>Q${qIndex + 1}: <span class="wrong">No Answer</span> (Correct: ${correctAnswer})</p>`;
-      } else {
-        resultHtml += `<p>Q${qIndex + 1}: <span class="wrong">Wrong</span> (Your answer: ${userAnswer}, Correct: ${correctAnswer})</p>`;
+    const answersArr = [];
+    const correctArr = [];
+    for (let i = 0; i < questionList.length; i++) {
+      const sel = document.getElementById(`q-${i}`).value;
+      if (!sel) {
+        alert(`Please answer question ${i + 1}`);
+        return;
       }
+      answersArr.push(sel);
+      correctArr.push(correctAnswersMap[`q-${i}`]);
+    }
+
+    let score = 0;
+    answersArr.forEach((ans, idx) => {
+      if (ans === correctArr[idx]) score++;
     });
 
-    resultHtml += `<p><strong>Your Score: ${score} / ${total}</strong></p>`;
-    feedbackBox.innerHTML = resultHtml;
-    feedbackBox.classList.remove('hidden');
-    manualSubmitBtn.classList.add('hidden');
-    questionsContainer.classList.add('hidden');
+    const payload = {
+      action: 'submit',
+      name: studentData["Students Name"],
+      email: studentData.Email,
+      subject: document.getElementById("subject-select").value,
+      answers: answersArr.join(", "),
+      correctAnswers: correctArr.join(", "),
+      score: `${score}/${questionList.length}`
+    };
+
+    fetch(SHEET_API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    .then(res => res.text())
+    .then(() => {
+      alert("✅ Exam Submitted! Your Score: " + score + "/" + questionList.length);
+      clearInterval(timerInterval);
+      showFeedback(answersArr);
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Something went wrong!");
+    });
   }
+
+  function showFeedback(answersArr) {
+  // Hide exam section
+  document.getElementById("exam-section").classList.add("hidden");
+  
+  // Create feedback screen div if not exists
+  let fbScreen = document.getElementById("feedback-screen");
+  if (!fbScreen) {
+    fbScreen = document.createElement('div');
+    fbScreen.id = "feedback-screen";
+    fbScreen.style.position = "fixed";
+    fbScreen.style.top = 0;
+    fbScreen.style.left = 0;
+    fbScreen.style.width = "100vw";
+    fbScreen.style.height = "100vh";
+    fbScreen.style.backgroundColor = "#f0f4ff";
+    fbScreen.style.padding = "40px";
+    fbScreen.style.overflowY = "auto";
+    fbScreen.style.zIndex = 2000;
+    fbScreen.style.display = "flex";
+    fbScreen.style.flexDirection = "column";
+    fbScreen.style.alignItems = "center";
+    fbScreen.style.justifyContent = "flex-start";
+    fbScreen.style.color = "#34495e";
+    fbScreen.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    fbScreen.style.fontSize = "18px";
+    fbScreen.style.lineHeight = "1.4";
+    fbScreen.style.textAlign = "center";
+    fbScreen.style.boxSizing = "border-box";
+    document.body.appendChild(fbScreen);
+  }
+  
+  // Build feedback HTML
+  let html = "<h2>📊 Feedback:</h2>";
+  questionList.forEach((q, idx) => {
+    const userAns = answersArr[idx];
+    const correct = correctAnswersMap[`q-${idx}`];
+    const ok = (userAns === correct);
+    html += `<p style="margin-bottom:12px; color:${ok ? '#27ae60' : '#e74c3c'}; font-weight:700;">
+      Q${idx + 1}: Your answer: <strong>${userAns}</strong>.<br> Correct answer: <strong>${correct}</strong>. ${ok ? "✅" : "❌"}
+    </p>`;
+  });
+  html += `<p id="exit-timer" style="margin-top: 30px; font-weight: 700; font-size: 20px;"></p>`;
+  
+  fbScreen.innerHTML = html;
+  fbScreen.style.display = "flex";
+
+  let exitTimer = 10;
+  const countdownEl = document.getElementById("exit-timer");
+  countdownEl.innerHTML = `🔁 Returning to login in <strong>${exitTimer}</strong> seconds...`;
+
+  const timerInterval = setInterval(() => {
+    exitTimer--;
+    if (exitTimer < 0) {
+      clearInterval(timerInterval);
+      location.reload();
+    } else {
+      countdownEl.innerHTML = `🔁 Returning to login in <strong>${exitTimer}</strong> seconds...`;
+    }
+  }, 1000);
+  
+  document.getElementById("manual-submit-btn").disabled = true;
+}
+
+  document.getElementById("subject-select").addEventListener("change", () => {
+    if (document.getElementById("subject-select").value) {
+      document.getElementById("start-exam-block").classList.remove("hidden");
+    } else {
+      document.getElementById("start-exam-block").classList.add("hidden");
+    }
+  });
 </script>
 
 </body>
 </html>
+
+
