@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NS SIDD Exam Portal</title>
+  <title>NS SIDD TUTORIAL Exam Portal</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -20,16 +20,21 @@
       z-index: 100;
     }
     #logo {
-      height: 40px;
+      font-size: 20px;
+      font-weight: bold;
     }
     #profile-info {
       display: flex;
       align-items: center;
     }
+    #student-name {
+      margin-right: 10px;
+    }
     #profile-img {
       height: 40px;
+      width: 40px;
       border-radius: 50%;
-      margin-left: 10px;
+      margin-right: 10px;
     }
     .container {
       padding: 80px 20px;
@@ -47,14 +52,14 @@
     }
     .timer {
       font-weight: bold;
-      color: red;
+      color: yellow;
     }
   </style>
 </head>
 <body>
 
 <div id="top-bar" class="hidden">
-  <img id="logo" src="https://your-logo-url-here.com/logo.png" alt="NS SIDD">
+  <div id="logo">NS SIDD TUTORIAL</div>
   <div id="profile-info">
     <span id="student-name"></span>
     <img id="profile-img" src="" alt="Profile">
@@ -84,11 +89,10 @@
 </div>
 
 <script>
-  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1MBfsjIJhnkm2iR2gibDAeCGYLJ2MUwNy6PseNT_ERvwyBDhtPZxHWlyQkjoMeXze/exec'; // Replace with your Apps Script URL
+  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1MBfsjIJhnkm2iR2gibDAeCGYLJ2MUwNy6PseNT_ERvwyBDhtPZxHWlyQkjoMeXze/exec';
 
   let studentData = null;
   let examStarted = false;
-  let answers = [];
   let timerInterval;
   let remainingTime = 60 * 60; // 1 hour in seconds
 
@@ -117,9 +121,9 @@
         const user = data.find(u => u.Email === email && u.Password === password);
         if (user) {
           studentData = user;
-          document.getElementById("student-name").innerText = user.Name;
+          document.getElementById("student-name").innerText = user["Students Name"];
           document.getElementById("profile-img").src = user["Profile Image"];
-          document.getElementById("welcome-name").innerText = user.Name;
+          document.getElementById("welcome-name").innerText = user["Students Name"];
 
           document.getElementById("login-form").classList.add("hidden");
           document.getElementById("exam-section").classList.remove("hidden");
@@ -209,7 +213,7 @@
 
     const payload = {
       action: 'submit',
-      name: studentData.Name,
+      name: studentData["Students Name"],
       email: studentData.Email,
       subject: subject,
       answers: selectedAnswers.join(", "),
@@ -235,4 +239,3 @@
 
 </body>
 </html>
-
