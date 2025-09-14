@@ -267,48 +267,52 @@
   }
 
   function submitExam() {
-    if (!examStarted) return;
+  if (!examStarted) return;
 
-    const answersArr = [];
-    for (let i = 0; i < questionList.length; i++) {
-      const sel = document.getElementById(`q-${i}`).value;
-      if (!sel) {
-        alert(`Please answer question ${i + 1}`);
-        return;
-      }
-      answersArr.push(sel);
+  const answersArr = [];
+  const correctArr = [];
+  for (let i = 0; i < questionList.length; i++) {
+    const sel = document.getElementById(`q-${i}`).value;
+    if (!sel) {
+      alert(`Please answer question ${i + 1}`);
+      return;
     }
-
-    // Calculate score
-    let score = 0;
-    answersArr.forEach((ans, idx) => {
-      if (ans === correctAnswersMap[`q-${idx}`]) score++;
-    });
-
-    const payload = {
-      action: 'submit',
-      name: studentData["Students Name"],
-      email: studentData.Email,
-      subject: document.getElementById("subject-select").value,
-      answers: answersArr.join(", "),
-      score: `${score}/${questionList.length}`
-    };
-
-    fetch(SHEET_API_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })
-      .then(res => res.text())
-      .then(() => {
-        alert("✅ Exam Submitted! Your Score: " + score + "/" + questionList.length);
-        clearInterval(timerInterval);
-        showFeedback(answersArr);
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Something went wrong!");
-      });
+    answersArr.push(sel);
+    correctArr.push(correctAnswersMap[`q-${i}`]);
   }
+
+  // Calculate score
+  let score = 0;
+  answersArr.forEach((ans, idx) => {
+    if (ans === correctArr[idx]) score++;
+  });
+
+  const payload = {
+    action: 'submit',
+    name: studentData["Students Name"],
+    email: studentData.Email,
+    subject: document.getElementById("subject-select").value,
+    answers: answersArr.join(", "),
+    correctAnswers: correctArr.join(", "),
+    score: `${score}/${questionList.length}`
+  };
+
+  fetch(SHEET_API_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+  .then(res => res.text())
+  .then(() => {
+    alert("✅ Exam Submitted! Your Score: " + score + "/" + questionList.length);
+    clearInterval(timerInterval);
+    showFeedback(answersArr);
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Something went wrong!");
+  });
+}
+
 
   function showFeedback(answersArr) {
   const fb = document.getElementById("feedback-box");
@@ -352,5 +356,6 @@
 
 </body>
 </html>
+
 
 
