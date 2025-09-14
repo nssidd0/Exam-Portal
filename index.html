@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NS SIDD TUTORIAL Exam Portal</title>
+  <title>NS SIDD TUTORIAL Advanced Exam Portal</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -55,6 +55,7 @@
       padding: 10px;
       margin: 10px 0;
       width: 100%;
+      font-size: 16px;
     }
     .question-block {
       margin-bottom: 20px;
@@ -63,13 +64,19 @@
       font-weight: bold;
       color: yellow;
     }
+    .feedback {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+    }
   </style>
 </head>
 <body>
 
 <div id="top-bar" class="hidden">
   <div id="logo">
-    <img src="nssiddlogo.png" alt="NS SIDD TUTORIAL Logo" />
+    <img src="https://i.imgur.com/your-logo.png" alt="NS SIDD TUTORIAL Logo" />
     NS SIDD TUTORIAL
   </div>
   <div id="profile-info">
@@ -90,39 +97,55 @@
   <div id="exam-section" class="hidden">
     <h2>Welcome, <span id="welcome-name"></span></h2>
     <label>Select Subject:</label>
-    <select id="subject-select" onchange="loadQuestions()">
+    <select id="subject-select">
       <option value="">-- Choose Subject --</option>
       <option value="Graphic Designing">Graphic Designing</option>
       <option value="Basic Computer">Basic Computer</option>
     </select>
-    <div id="questions-container"></div>
-    <button onclick="submitExam()">Submit</button>
+    <div id="start-exam-block" class="hidden">
+      <button onclick="startExam()">Start Exam</button>
+    </div>
+    <div id="questions-container" class="hidden"></div>
+    <button id="manual-submit-btn" class="hidden" onclick="confirmSubmit()">Submit</button>
+    <div id="feedback-box" class="feedback hidden"></div>
   </div>
 </div>
 
 <script>
-  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1MBfsjIJhnkm2iR2gibDAeCGYLJ2MUwNy6PseNT_ERvwyBDhtPZxHWlyQkjoMeXze/exec';
+  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1MBfsjIJhnkm2gibDAeCGYLJ2MUwNy6PseNT_ERvwyBDhtPZxHWlyQkjoMeXze/exec';
 
   let studentData = null;
   let examStarted = false;
   let timerInterval;
   let remainingTime = 60 * 60; // 1 hour in seconds
+  let questionList = [];
+  let selectedAnswers = [];
+  let correctAnswersMap = {};
 
   const questionBank = {
     "Graphic Designing": [
-      { q: "What is Photoshop?", options: ["Software", "Tool", "Game"] },
-      { q: "Which format supports transparency?", options: ["JPG", "PNG", "BMP"] },
-      { q: "Which color mode is used for print?", options: ["RGB", "CMYK", "HEX"] }
+      { q: "What is Photoshop?", options: ["Software", "Tool", "Game"], correct: "Software" },
+      { q: "Which format supports transparency?", options: ["JPG", "PNG", "BMP"], correct: "PNG" },
+      { q: "Which color mode is used for print?", options: ["RGB", "CMYK", "HEX"], correct: "CMYK" }
     ],
     "Basic Computer": [
-      { q: "What is CPU?", options: ["Monitor", "Processor", "Keyboard"] },
-      { q: "Full form of RAM?", options: ["Random Access Memory", "Read Access Mode", "Run Access Memory"] },
-      { q: "Operating system example?", options: ["Windows", "Excel", "Photoshop"] }
+      { q: "What is CPU?", options: ["Monitor", "Processor", "Keyboard"], correct: "Processor" },
+      { q: "Full form of RAM?", options: ["Random Access Memory", "Read Access Mode", "Run Access Memory"], correct: "Random Access Memory" },
+      { q: "Operating system example?", options: ["Windows", "Excel", "Photoshop"], correct: "Windows" }
     ]
   };
 
+  function shuffleArray(arr) {
+    // Fisher-Yates shuffle
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
   function fixDriveImageUrl(url) {
-    // If Google Drive sharing link detected, convert to direct image URL
+    if (!url) return '';
     if (url.includes("drive.google.com") && url.includes("/file/d/")) {
       let fileId = url.match(/\/file\/d\/(.*?)\//);
       if (!fileId) {
@@ -135,14 +158,17 @@
         return `https://drive.google.com/uc?export=view&id=${fileId}`;
       }
     }
-    return url; // return as is if not drive link
+    return url;
   }
 
   function handleLogin() {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    if (!email || !password) return alert("Please enter both Email and Password");
+    if (!email || !password) {
+      alert("Please enter both Email and Password");
+      return;
+    }
 
     fetch(`${SHEET_API_URL}?action=login`)
       .then(res => res.json())
@@ -150,33 +176,56 @@
         const user = data.find(u => u.Email === email && u.Password === password);
         if (user) {
           studentData = user;
-
           document.getElementById("student-name").innerText = user["Students Name"];
-          // Fix Drive link if needed for profile image
-          const fixedImgUrl = fixDriveImageUrl(user["Profile Image"]);
-          document.getElementById("profile-img").src = fixedImgUrl;
+          const fixedImg = fixDriveImageUrl(user["Profile Image"]);
+          document.getElementById("profile-img").src = fixedImg;
           document.getElementById("welcome-name").innerText = user["Students Name"];
 
           document.getElementById("login-form").classList.add("hidden");
           document.getElementById("exam-section").classList.remove("hidden");
           document.getElementById("top-bar").classList.remove("hidden");
-
-          startTimer();
         } else {
           alert("Invalid email or password.");
         }
-      }).catch(() => alert("Error connecting to server."));
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error connecting to server.");
+      });
   }
 
-  function loadQuestions() {
+  function startExam() {
     const subject = document.getElementById("subject-select").value;
+    if (!subject) {
+      alert("Please select subject!");
+      return;
+    }
+
+    // Prepare questions
+    questionList = JSON.parse(JSON.stringify(questionBank[subject])); // deep copy
+    shuffleArray(questionList);
+    questionList.forEach(q => shuffleArray(q.options));
+
+    // Map correct answers
+    correctAnswersMap = {};
+    questionList.forEach((q, idx) => {
+      correctAnswersMap[`q-${idx}`] = q.correct;
+    });
+
+    document.getElementById("subject-select").disabled = true;
+    document.getElementById("start-exam-block").classList.add("hidden");
+    document.getElementById("questions-container").classList.remove("hidden");
+    document.getElementById("manual-submit-btn").classList.remove("hidden");
+
+    renderQuestions();
+    startTimer();
+    examStarted = true;
+  }
+
+  function renderQuestions() {
     const container = document.getElementById("questions-container");
-    container.innerHTML = '';
-
-    if (!subject) return;
-
-    const questions = questionBank[subject] || [];
-    questions.forEach((item, idx) => {
+    container.innerHTML = "";
+    questionList.forEach((item, idx) => {
       const block = document.createElement("div");
       block.className = "question-block";
       block.innerHTML = `
@@ -188,23 +237,19 @@
       `;
       container.appendChild(block);
     });
-
-    examStarted = true;
   }
 
   function startTimer() {
+    remainingTime = 60 * 60;
     timerInterval = setInterval(() => {
       remainingTime--;
-
       const minutes = Math.floor(remainingTime / 60);
       const seconds = remainingTime % 60;
-
       document.getElementById("exam-timer").innerText = `⏳ ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 
       if (remainingTime === 300) {
         alert("⚠️ Only 5 minutes left!");
       }
-
       if (remainingTime <= 0) {
         clearInterval(timerInterval);
         alert("⏰ Time's up! Auto-submitting your exam.");
@@ -213,43 +258,40 @@
     }, 1000);
   }
 
-  function calculateScore(subject, selectedAnswers) {
-    const correctAnswers = {
-      "Graphic Designing": ["Software", "PNG", "CMYK"],
-      "Basic Computer": ["Processor", "Random Access Memory", "Windows"]
-    };
-    let score = 0;
-    const correct = correctAnswers[subject];
-
-    selectedAnswers.forEach((ans, idx) => {
-      if (ans === correct[idx]) score++;
-    });
-
-    return score;
+  function confirmSubmit() {
+    if (!examStarted) return;
+    const ok = confirm("Are you sure you want to submit your exam now?");
+    if (ok) {
+      submitExam();
+    }
   }
 
   function submitExam() {
     if (!examStarted) return;
 
-    const subject = document.getElementById("subject-select").value;
-    if (!subject) return alert("Please select subject!");
-
-    const selectedAnswers = [];
-    for (let i = 0; i < 3; i++) {
-      const val = document.getElementById(`q-${i}`).value;
-      if (!val) return alert(`Please answer question ${i + 1}`);
-      selectedAnswers.push(val);
+    const answersArr = [];
+    for (let i = 0; i < questionList.length; i++) {
+      const sel = document.getElementById(`q-${i}`).value;
+      if (!sel) {
+        alert(`Please answer question ${i + 1}`);
+        return;
+      }
+      answersArr.push(sel);
     }
 
-    const score = calculateScore(subject, selectedAnswers);
+    // Calculate score
+    let score = 0;
+    answersArr.forEach((ans, idx) => {
+      if (ans === correctAnswersMap[`q-${idx}`]) score++;
+    });
 
     const payload = {
       action: 'submit',
       name: studentData["Students Name"],
       email: studentData.Email,
-      subject: subject,
-      answers: selectedAnswers.join(", "),
-      score: `${score}/3`
+      subject: document.getElementById("subject-select").value,
+      answers: answersArr.join(", "),
+      score: `${score}/${questionList.length}`
     };
 
     fetch(SHEET_API_URL, {
@@ -257,18 +299,40 @@
       body: JSON.stringify(payload),
     })
       .then(res => res.text())
-      .then(res => {
-        alert("✅ Exam Submitted Successfully!\nYour Score: " + score + "/3");
+      .then(() => {
+        alert("✅ Exam Submitted! Your Score: " + score + "/" + questionList.length);
         clearInterval(timerInterval);
-        location.reload();
+        showFeedback(answersArr);
       })
       .catch(err => {
-        alert("Something went wrong!");
         console.error(err);
+        alert("Something went wrong!");
       });
   }
+
+  function showFeedback(answersArr) {
+    const fb = document.getElementById("feedback-box");
+    fb.innerHTML = "<h3>Feedback:</h3>";
+    questionList.forEach((q, idx) => {
+      const userAns = answersArr[idx];
+      const correct = correctAnswersMap[`q-${idx}`];
+      const ok = (userAns === correct);
+      fb.innerHTML += `<p>Q${idx + 1}: Your answer: <strong>${userAns}</strong>. Correct answer: <strong>${correct}</strong>. ${ok ? "✅" : "❌"}</p>`;
+    });
+    fb.classList.remove("hidden");
+    document.getElementById("manual-submit-btn").disabled = true;
+  }
+
+  // Watch subject select to show start button
+  document.getElementById("subject-select").addEventListener("change", () => {
+    if (document.getElementById("subject-select").value) {
+      document.getElementById("start-exam-block").classList.remove("hidden");
+    } else {
+      document.getElementById("start-exam-block").classList.add("hidden");
+    }
+  });
+
 </script>
 
 </body>
 </html>
-
