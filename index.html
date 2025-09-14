@@ -311,17 +311,33 @@
   }
 
   function showFeedback(answersArr) {
-    const fb = document.getElementById("feedback-box");
-    fb.innerHTML = "<h3>Feedback:</h3>";
-    questionList.forEach((q, idx) => {
-      const userAns = answersArr[idx];
-      const correct = correctAnswersMap[`q-${idx}`];
-      const ok = (userAns === correct);
-      fb.innerHTML += `<p>Q${idx + 1}: Your answer: <strong>${userAns}</strong>. Correct answer: <strong>${correct}</strong>. ${ok ? "✅" : "❌"}</p>`;
-    });
-    fb.classList.remove("hidden");
-    document.getElementById("manual-submit-btn").disabled = true;
-  }
+  const fb = document.getElementById("feedback-box");
+  fb.innerHTML = "<h3>📊 Feedback:</h3>";
+  questionList.forEach((q, idx) => {
+    const userAns = answersArr[idx];
+    const correct = correctAnswersMap[`q-${idx}`];
+    const ok = (userAns === correct);
+    fb.innerHTML += `<p>Q${idx + 1}: Your answer: <strong>${userAns}</strong>. Correct answer: <strong>${correct}</strong>. ${ok ? "✅" : "❌"}</p>`;
+  });
+
+  // Countdown before exit
+  let exitTimer = 10;
+  const countdownEl = document.createElement('p');
+  countdownEl.id = "exit-timer";
+  fb.appendChild(countdownEl);
+
+  const timerInterval = setInterval(() => {
+    countdownEl.innerHTML = `🔁 Returning to login in <strong>${exitTimer}</strong> seconds...`;
+    exitTimer--;
+    if (exitTimer < 0) {
+      clearInterval(timerInterval);
+      location.reload(); // This reloads the page and takes back to login
+    }
+  }, 1000);
+
+  fb.classList.remove("hidden");
+  document.getElementById("manual-submit-btn").disabled = true;
+}
 
   // Watch subject select to show start button
   document.getElementById("subject-select").addEventListener("change", () => {
@@ -336,4 +352,5 @@
 
 </body>
 </html>
+
 
