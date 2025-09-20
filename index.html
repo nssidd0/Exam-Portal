@@ -259,6 +259,7 @@
       <label for="subject-select" style="font-weight:600; color:#182848;">Select Subject:</label>
       <select id="subject-select" aria-label="Select Subject">
         <option value="">-- Choose Subject --</option>
+        <option value="Test">Test</option>
         <option value="Little Genius">Little Genius</option>
         <option value="Basic Computer Course">Basic Computer Course</option>
         <option value="Accounting with TallyPrime">Accounting with TallyPrime</option>
@@ -289,6 +290,11 @@
   let correctAnswersMap = {};
 
   const questionBank = {
+    "Test": [
+  { "q": "कंप्यूटर क्या है?", "options": ["एक इलेक्ट्रॉनिक मशीन", "एक मानव", "एक पशु", "एक खेल"], "correct": "एक इलेक्ट्रॉनिक मशीन" },
+  { "q": "कंप्यूटर को किसने बनाया?", "options": ["चार्ल्स बैबेज", "थॉमस एडिसन", "अल्बर्ट आइंस्टीन", "इसे नहीं पता"], "correct": "चार्ल्स बैबेज" },
+  { "q": "कंप्यूटर में डाटा कहाँ रखा जाता है?", "options": ["हार्ड डिस्क", "कीबोर्ड", "मॉनिटर", "माउस"], "correct": "हार्ड डिस्क" },
+      ],
     "Little Genius": [
   { "q": "कंप्यूटर क्या है?", "options": ["एक इलेक्ट्रॉनिक मशीन", "एक मानव", "एक पशु", "एक खेल"], "correct": "एक इलेक्ट्रॉनिक मशीन" },
   { "q": "कंप्यूटर को किसने बनाया?", "options": ["चार्ल्स बैबेज", "थॉमस एडिसन", "अल्बर्ट आइंस्टीन", "इसे नहीं पता"], "correct": "चार्ल्स बैबेज" },
@@ -937,6 +943,7 @@
 
 </body>
 </html>
+
 
 
 
