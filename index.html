@@ -16,10 +16,10 @@
     }
     #progress-bar-container {
   width: 100%;
-  background: #ddd;
-  height: 14px;
-  border-radius: 8px;
-  margin: 20px 0;
+  background: rgba(255, 255, 255, 0.3);
+  height: 10px;
+  border-radius: 5px;
+  margin-top: 8px;
   overflow: hidden;
 }
 
@@ -46,19 +46,19 @@
   text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
 }
     #top-bar {
-      background: linear-gradient(90deg, #4b6cb7, #182848);
-      color: white;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: fixed;
-      width: 100%;
-      top: 0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 1000;
-      font-weight: 600;
-    }
+  background: linear-gradient(90deg, #4b6cb7, #182848);
+  color: white;
+  padding: 12px 20px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 1000;
+  font-weight: 600;
+}
     #logo {
       display: flex;
       align-items: center;
@@ -99,7 +99,7 @@
     }
     /* Container */
     .container {
-      margin-top: 70px;
+      margin-top: 130px;
       flex-grow: 1;
       padding: 30px 24px;
       max-width: 700px;
@@ -259,6 +259,10 @@
       <img id="profile-img" src="" alt="Profile" onerror="this.style.display='none'" />
       <span class="timer" id="exam-timer"></span>
     </div>
+    <!-- 👇 Progress bar -->
+    <div id="progress-bar-container" class="hidden">
+  <div id="progress-bar"></div>
+</div>
   </div>
 
   <div class="container">
@@ -270,9 +274,6 @@
     </div>
 
     <div id="exam-section" class="hidden">
-      <div id="progress-bar-container" class="hidden">
-  <div id="progress-bar"></div>
-</div>
       <h2>Welcome, <span id="welcome-name"></span></h2>
       <label for="subject-select" style="font-weight:600; color:#182848;">Select Subject:</label>
       <select id="subject-select" aria-label="Select Subject">
