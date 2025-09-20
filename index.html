@@ -287,7 +287,7 @@
   let remainingTime = 60 * 60; // 1 hour in seconds
   let questionList = [];
   let selectedAnswers = [];
-  let correctAnswersMap = {};
+  let correctAnswersMap = [];
 
   const questionBank = {
     "Test": [
@@ -847,8 +847,7 @@
       name: studentData["Students Name"],
       email: studentData.Email,
       subject: document.getElementById("subject-select").value,
-      answers: answersArr.join(",
-                               "),
+      answers: answersArr.join(", "),
       correctAnswers: correctArr.join(", "),
       score: `${score}/${questionList.length}`
     };
@@ -943,6 +942,7 @@
 
 </body>
 </html>
+
 
 
 
