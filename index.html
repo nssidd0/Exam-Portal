@@ -841,7 +841,8 @@
       name: studentData["Students Name"],
       email: studentData.Email,
       subject: document.getElementById("subject-select").value,
-      answers: answersArr.join(", "),
+      answers: answersArr.join(",
+                               "),
       correctAnswers: correctArr.join(", "),
       score: `${score}/${questionList.length}`
     };
@@ -936,6 +937,7 @@
 
 </body>
 </html>
+
 
 
 
