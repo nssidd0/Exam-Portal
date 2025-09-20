@@ -14,6 +14,21 @@
       display: flex;
       flex-direction: column;
     }
+    #progress-bar-container {
+  width: 100%;
+  background: #ddd;
+  height: 14px;
+  border-radius: 8px;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, #27ae60, #2ecc71);
+  transition: width 0.4s ease-in-out;
+}
     /* Top Bar */
     #login-header {
   text-align: center;
@@ -255,6 +270,9 @@
     </div>
 
     <div id="exam-section" class="hidden">
+      <div id="progress-bar-container" class="hidden">
+  <div id="progress-bar"></div>
+</div>
       <h2>Welcome, <span id="welcome-name"></span></h2>
       <label for="subject-select" style="font-weight:600; color:#182848;">Select Subject:</label>
       <select id="subject-select" aria-label="Select Subject">
@@ -753,6 +771,7 @@
   }
 
   function startExam() {
+    document.getElementById("progress-bar-container").classList.remove("hidden");
     const subject = document.getElementById("subject-select").value;
     if (!subject) {
       alert("Please select subject!");
@@ -786,7 +805,7 @@
       block.className = "question-block";
       block.innerHTML = `
         <p><strong>Q${idx + 1}:</strong> ${item.q}</p>
-        <select id="q-${idx}">
+        <select id="q-${idx}" onchange="updateProgressBar()">
           <option value="">-- Select Answer --</option>
           ${item.options.map(opt => `<option value="${opt}">${opt}</option>`).join("")}
         </select>
@@ -938,16 +957,50 @@
       document.getElementById("start-exam-block").classList.add("hidden");
     }
   });
+  const messages = [
+  "🎯 You're doing great! Keep going!",
+  "💪 Stay focused, you got this!",
+  "📘 Don't rush. Think calmly.",
+  "🔥 Keep up the good work!",
+];
+
+function showEncouragement() {
+  const msg = messages[Math.floor(Math.random() * messages.length)];
+  const el = document.createElement("div");
+  el.innerText = msg;
+  el.style.position = "fixed";
+  el.style.bottom = "20px";
+  el.style.right = "20px";
+  el.style.background = "#4b6cb7";
+  el.style.color = "white";
+  el.style.padding = "10px 20px";
+  el.style.borderRadius = "8px";
+  el.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+  el.style.zIndex = 9999;
+  el.style.opacity = "0.95";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 6000);
+}
+
+// Har 5 minute me dikhaye
+setInterval(() => {
+  if (examStarted) showEncouragement();
+}, 300000); // 5 mins = 300000 ms
+  function updateProgressBar() {
+  const total = questionList.length;
+  let answered = 0;
+  for (let i = 0; i < total; i++) {
+    if (document.getElementById(`q-${i}`).value) {
+      answered++;
+    }
+  }
+  const percent = (answered / total) * 100;
+  document.getElementById("progress-bar").style.width = `${percent}%`;
+    document.getElementById("tick-sound").play().catch(() => {});
+}
+
 </script>
+<audio id="tick-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
